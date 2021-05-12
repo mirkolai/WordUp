@@ -1,114 +1,29 @@
-import unicodedata
-import Model_udpipe
-import re
 
-#model = Model_udpipe.Model_udpipe("udipe_model/spanish_udpipe_model.output")
-
-
+#tweet_id,user_id,retweet_count,favourite_count,source,created_at
 class Tweet(object):
 
-    id=None
-    text=None
-    label=None
-    language=None
-    topic=None
+    tweet_id=None
+    user_id=None
+    retweet_count=None
+    favourite_count=None
+    source=None
+    created_at=None
 
-    def __init__(self,id, text, label,language,topic):
+    def __init__(self,tweet_id,user_id,retweet_count,favourite_count,source,created_at):
+            self.tweet_id=tweet_id
+            self.user_id=user_id
+            self.retweet_count=retweet_count
+            self.favourite_count=favourite_count
+            self.source=source
+            self.created_at=created_at
 
-
-        self.id=id
-        self.text = re.sub(r'\w+:\/{2}[\d\w-]+(\.[\d\w-]+)*(?:(?:\/[^\s/]*))*', ' ', text)
-        # self.text=text
-        print("text")
-        print(text)
-        self.language=language
-        self.topic=topic
-        """
-        import re
-        from nltk.corpus import stopwords
-        you cold:
-        Remove urls
-        self.text=re.sub(r'\w+:\/{2}[\d\w-]+(\.[\d\w-]+)*(?:(?:\/[^\s/]*))*', ' URL ', text)
-        Remove hashtags
-        self.text=re.sub(r'#(\w+)', ' HASHTAG ', text)
-        Remove stop words
-        self.text_no_stop_word=" ".join([word for word in self.text if word not in stopwords.words('english')])
-        etc...
-        """
-
-
-        self.label=label
-        #print("label")
-        #print(self.label)
-
-        self.text_accents_stripped=strip_accents(self.text)
-
-        #self.upostag=model.return_upostags(self.text)
-        #print("upostag")
-        #print(self.upostag)
-
-        #self.deprelnegation=model.return_deprelnegations(self.text)
-        #print("deprelnegation")
-        #print(self.deprelnegation)
-
-
-        #self.deprels=model.return_deprels(self.text)
-        #print("deprels")
-        #print(self.deprels)
-
-
-        #self.relationVERB=model.return_relation(self.text,"VERB","form")
-        print("relationVERB")
-        print(self.relationVERB)
-
-        #self.relationNOUN=model.return_relation(self.text,"NOUN","form")
-        print("relationNOUN")
-        print(self.relationNOUN)
-
-        #self.relationADJ=model.return_relation(self.text,"ADJ","form")
-        print("relationADJ")
-        print(self.relationADJ)
-
-        #self.Sidorov_form=model.return_Sidorov(self.text,"form")
-        #print("Sidorov_form")
-        #print(self.Sidorov_form)
-
-        #self.Sidorov_upostag=model.return_Sidorov(self.text,"upostag")
-        #print("Sidorov_upostag")
-        #print(self.Sidorov_upostag)
-
-        #self.Sidorov_deprel=model.return_Sidorov(self.text,"deprel")
-        #print("Sidorov_deprel")
-        #print(self.Sidorov_deprel)
-
-
-        print("\n\n")
-
-
-
-def make_tweet(id, text, label,language,topic ):
+def make_tweet(tweet_id,user_id,retweet_count,favourite_count,source,created_at):
     """
         Return a Tweet object.
     """
-    tweet = Tweet(id, text, label,language,topic)
+    tweet = Tweet(tweet_id,user_id,retweet_count,favourite_count,source,created_at)
 
     return tweet
 
 
 
-
-def strip_accents(text):
-    """
-    Strip accents from input String.
-
-    :param text: The input string.
-    :type text: String.
-
-    :returns: The processed String.
-    :rtype: String.
-    """
-
-    text = unicodedata.normalize('NFD', text)
-    text = text.encode('ascii', 'ignore')
-    text = text.decode("utf-8")
-    return str(text)
