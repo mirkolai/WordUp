@@ -16,10 +16,10 @@ class Database_manager(object):
 
     def __init__(self,language,partition):
         if language not in ["es","eu"]:
-            exit("Language not supported")
+            raise Exception("Language not supported")
         self.language=language
         if partition not in ["train","test"]:
-            exit("partition not supported")
+            raise Exception("partition not supported")
         self.partition=partition
 
 

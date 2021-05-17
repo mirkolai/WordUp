@@ -10,7 +10,6 @@ from sklearn.metrics import precision_recall_fscore_support, accuracy_score
 from sklearn.model_selection import KFold
 
 
-
 def unique(list1):
     # intilize a null list
     unique_list = []
@@ -36,7 +35,7 @@ labels = numpy.array(feature_manager.get_label(istances))
 
 print(unique(labels))
 
-print(len(istances))
+print("istances:",len(istances))
 
 
 # recover keyword list corresponding to available features
@@ -55,7 +54,7 @@ print("feature space dimension:", X.shape)
 
 golden = []
 predict = []
-kf = KFold(n_splits=5, shuffle=True, random_state=True)
+kf = KFold(n_splits=5, shuffle=True, random_state=1)
 
 for index_train, index_test in kf.split(X):
 
