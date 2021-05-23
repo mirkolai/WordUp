@@ -194,7 +194,7 @@ class Model_udpipe:
 
 
 
-    def return_target_context(self, conllu_txt):
+    def return_target_context_one(self, conllu_txt):
         if self.language=="es":
             target="vaccin"
         else:
@@ -259,7 +259,7 @@ class Model_udpipe:
                                print("previous",previous['form'])
                                previous_list.append(self.embeddings.wv.__getitem__(previous["form"]))
                                for previous_2 in conllu_obj[i]:
-                                    if previous_2["head"] is not None and next["id"]==previous_2["head"]:
+                                    if previous["head"] is not None and previous_2["id"]==previous["head"]:
                                         print("token",previous_2['form'])
                                         next_list_2.append(self.embeddings.wv.__getitem__(previous_2["form"]))
                         print("next_list_2",type(next_list_2))
@@ -299,12 +299,12 @@ if __name__== "__main__":
     model = Model_udpipe("es")
     #nlp = es_core_news_md.load()
 
-    text = "xxxxththf frgfa lorgfgxs vaccinos. una y mil veces por la programación de la TV nacional"
+    text = "no quiero hacer mas vaccinos de los que he ya hechos. una y mil veces por la programación de la TV nacional"
     conllu_txt=model.return_conllu_txt(text)
     print(conllu_txt)
     relation=''
     key=''
-    output=model.return_target_context(conllu_txt)
+    output=model.return_target_context_one(conllu_txt)
 
     output=model.return_target_context_two(conllu_txt)
 

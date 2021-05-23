@@ -54,7 +54,7 @@ feature_types = feature_manager.get_availablefeaturetypes()
 """
 or you could include only desired features"""
 feature_types=[
-               "ngrams",
+               #"ngrams",
                #"chargrams",
                #"puntuactionmarks",
                #"capitalizedletters",
@@ -73,12 +73,14 @@ feature_types=[
                #"Sidorovbigramsform",
                #"Sidorovbigramsupostag",
                #"Sidorovbigramsdeprel" ,
-
-                #"tweet_info",
-                #"tweet_info_source",
-                #"user_info",
+               # "target_context_one",
+               # "target_context_two",
+                "tweet_info",
+                "tweet_info_source",
+                "user_info",
 
              ]
+#f-avg 0.828633746118431 0.01905251483131286
 
 # create the feature space with all available features
 X, feature_names, feature_type_indexes = feature_manager.create_feature_space(instances, feature_types)
@@ -93,8 +95,8 @@ for random_state in [1,2,3]:
 
     for index_train, index_test in kf.split(X):
         clf = RandomForestClassifier()
-        clf.fit(X[index_train].toarray(), labels[index_train])
-        test_predict = clf.predict(X[index_test].toarray())
+        clf.fit(X[index_train], labels[index_train])
+        test_predict = clf.predict(X[index_test])
         prec, recall, f, support = \
             precision_recall_fscore_support(
                                             labels[index_test],

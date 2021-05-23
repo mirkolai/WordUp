@@ -50,6 +50,9 @@ class Features_manager(object):
              "Sidorovbigramsupostag":self.get_Sidorov_bigramsupostag_features,
              "Sidorovbigramsdeprel" :self.get_Sidorov_bigramsdeprel_features,
 
+             "target_context_one"   :self.get_target_context_one_features,
+             "target_context_two"   :self.get_target_context_two_features,
+
              "tweet_info"            :self.get_tweet_info_features,
              "user_info"             :self.get_user_info_features,
              "tweet_info_source"     :self.get_tweet_info_source_features,
@@ -1035,158 +1038,59 @@ class Features_manager(object):
                 return X_train, X_test, feature_names
 
 
-    def get_relationformVERB_features(self, tweets, tweet_test=None):
-        """
-        :param tweets: Array of  Tweet objects. Training set.
-        :param tweet_test: Optional Array of  Tweet objects. Test set.
-        :return:
-        X_train: The feature space of the training set
-        X_test: The feature space of the test set, if test  set was defined
-        feature_names:  An array containing the names of the features used  for  creating the feature space
-        """
-        # CountVectorizer return a numpy matrix
-        # row number of tweets
-        # column number of 1-3gram in the dictionary
+    def get_target_context_one_features(self, tweets, tweets_test=None):
 
-        tfidfVectorizer = CountVectorizer(ngram_range=(1,1),
-                                          analyzer="word",
-                                          # stop_words="english",
-                                          lowercase=True,
-                                          binary=True,
-                                          max_features=500000)
-
-        if tweet_test is None:
+        if tweets_test is None:
             feature = []
             for tweet in tweets:
-                feature.append(tweet.relationVERB)
+                values = tweet.target_context_one
+                feature.append(values)
 
-
-            tfidfVectorizer = tfidfVectorizer.fit(feature)
-
-            X = tfidfVectorizer.transform(feature)
-
-            feature_names = tfidfVectorizer.get_feature_names()
-
-            return X, feature_names
+            return csr_matrix(np.vstack(feature)),\
+                   [str(i)+"_target_context_one" for i in range(0,len(values)) ]
         else:
             feature = []
             feature_test = []
             for tweet in tweets:
-                feature.append(tweet.relationVERB)
+                concepts, values = tweet.target_context_one
+                feature.append(values)
 
-            for tweet in tweet_test:
-                feature_test.append(tweet.relationVERB)
+            for tweet in tweets:
+                concepts, values = tweet.target_context_one
+                feature.append(values)
 
-            tfidfVectorizer = tfidfVectorizer.fit(feature)
+            return csr_matrix(np.vstack(feature)),\
+                   csr_matrix(np.vstack(feature_test)),\
+                   [str(i)+"_target_context_one" for i in range(0,len(values)) ]
 
-            X_train = tfidfVectorizer.transform(feature)
-            X_test = tfidfVectorizer.transform(feature_test)
 
-            feature_names = tfidfVectorizer.get_feature_names()
+    def get_target_context_two_features(self, tweets, tweets_test=None):
 
-            return X_train, X_test, feature_names
-
-    def get_relationformNOUN_features(self, tweets, tweet_test=None):
-        """
-        :param tweets: Array of  Tweet objects. Training set.
-        :param tweet_test: Optional Array of  Tweet objects. Test set.
-        :return:
-        X_train: The feature space of the training set
-        X_test: The feature space of the test set, if test  set was defined
-        feature_names:  An array containing the names of the features used  for  creating the feature space
-        """
-        # CountVectorizer return a numpy matrix
-        # row number of tweets
-        # column number of 1-3gram in the dictionary
-
-        tfidfVectorizer = CountVectorizer(ngram_range=(1,1),
-                                          analyzer="word",
-                                          # stop_words="english",
-                                          lowercase=True,
-                                          binary=True,
-                                          max_features=500000)
-
-        if tweet_test is None:
+        if tweets_test is None:
             feature = []
             for tweet in tweets:
-                feature.append(tweet.relationNOUN)
+                values = tweet.target_context_one
+                feature.append(values)
 
-
-            tfidfVectorizer = tfidfVectorizer.fit(feature)
-
-            X = tfidfVectorizer.transform(feature)
-
-            feature_names = tfidfVectorizer.get_feature_names()
-
-            return X, feature_names
+            return csr_matrix(np.vstack(feature)),\
+                   [str(i)+"_target_context_one" for i in range(0,len(values)) ]
         else:
             feature = []
             feature_test = []
             for tweet in tweets:
-                feature.append(tweet.relationNOUN)
+                concepts, values = tweet.target_context_one
+                feature.append(values)
 
-            for tweet in tweet_test:
-                feature_test.append(tweet.relationNOUN)
-
-            tfidfVectorizer = tfidfVectorizer.fit(feature)
-
-            X_train = tfidfVectorizer.transform(feature)
-            X_test = tfidfVectorizer.transform(feature_test)
-
-            feature_names = tfidfVectorizer.get_feature_names()
-
-            return X_train, X_test, feature_names
-
-    def get_relationformADJ_features(self, tweets, tweet_test=None):
-        """
-        :param tweets: Array of  Tweet objects. Training set.
-        :param tweet_test: Optional Array of  Tweet objects. Test set.
-        :return:
-        X_train: The feature space of the training set
-        X_test: The feature space of the test set, if test  set was defined
-        feature_names:  An array containing the names of the features used  for  creating the feature space
-        """
-        # CountVectorizer return a numpy matrix
-        # row number of tweets
-        # column number of 1-3gram in the dictionary
-
-        tfidfVectorizer = CountVectorizer(ngram_range=(1,1),
-                                          analyzer="word",
-                                          # stop_words="english",
-                                          lowercase=True,
-                                          binary=True,
-                                          max_features=500000)
-
-        if tweet_test is None:
-            feature = []
             for tweet in tweets:
-                feature.append(tweet.relationADJ)
+                concepts, values = tweet.target_context_one
+                feature.append(values)
+
+            return csr_matrix(np.vstack(feature)),\
+                   csr_matrix(np.vstack(feature_test)),\
+                   [str(i)+"_target_context_one" for i in range(0,len(values)) ]
 
 
-            tfidfVectorizer = tfidfVectorizer.fit(feature)
 
-            X = tfidfVectorizer.transform(feature)
-
-            feature_names = tfidfVectorizer.get_feature_names()
-
-            return X, feature_names
-        else:
-            feature = []
-            feature_test = []
-            for tweet in tweets:
-                feature.append(tweet.relationADJ)
-
-            for tweet in tweet_test:
-                feature_test.append(tweet.relationADJ)
-
-            tfidfVectorizer = tfidfVectorizer.fit(feature)
-
-            X_train = tfidfVectorizer.transform(feature)
-            X_test = tfidfVectorizer.transform(feature_test)
-
-            feature_names = tfidfVectorizer.get_feature_names()
-
-            return X_train, X_test, feature_names
 
 ####################################
 #base features

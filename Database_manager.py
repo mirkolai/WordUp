@@ -62,6 +62,8 @@ class Database_manager(object):
                             conllu_txt=self.model_udpipe.return_conllu_txt(text)
                             bio=self.return_bio(user_id)
 
+
+
                             #lessical_diversity=self.return_lessical_diversity(tweet_id)
                             lessical_diversity=None
                             networks_metrics={}

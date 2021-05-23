@@ -38,6 +38,10 @@ class Instance(object):
         self.Sidorov_upostag=model_udpipe.return_Sidorov(conllu_txt,"upostag")
         self.Sidorov_deprel=model_udpipe.return_Sidorov(conllu_txt,"deprel")
 
+        self.target_context_one=model_udpipe.return_target_context_one(conllu_txt)
+        self.target_context_two=model_udpipe.return_target_context_two(conllu_txt)
+
+
 
         self.lessical_diversity=lessical_diversity
         #self.networks_metrics_base_centrality_friend=networks_metrics["base_friends_centrality"]
