@@ -32,6 +32,7 @@ class Features_manager(object):
              "puntuactionmarks"     :self.get_puntuaction_marks_features,
              "capitalizedletters"   :self.get_capitalized_letters_features,
              "laughter"             :self.get_laughter_features,
+             "statistics"           :self.get_statistics_features,
 
 
 
@@ -496,6 +497,72 @@ class Features_manager(object):
 
             return csr_matrix(np.vstack(feature)),csr_matrix(np.vstack(feature_test)),\
                    ["feature_laughter"]
+
+    def get_statistics_features(self,tweets,tweet_test=None):
+
+        # This method extracts a single column (feature_numhashtag)
+        # len(tweets) rows of 6 columns
+        # sr_matrix(np.vstack(feature)) convert to an array of dimension len(tweets)X6
+
+        if tweet_test is None:
+            feature = []
+
+            for tweet in tweets:
+                feature.append([
+                len(re.findall(r"[\%]", tweet.text)),
+                len(re.findall(r"[0-9\.]{1,}\%", tweet.text)),
+                len(re.findall(r"[^0-9][5-9]{1}[0-9]{1}(\.[0-9]{0,})?\%", tweet.text)),
+                len(re.findall(r"[^0-9][0-4]{1}[0-9]{1}(\.[0-9]{0,})?\%", tweet.text)),
+                len(re.findall(r"[^0-9][9]{1}[0-9]{1}(\.[0-9]{0,})?\%", tweet.text)),
+                ]
+
+            )
+
+
+            return csr_matrix(np.vstack(feature)),\
+                   ["feature_percentage",
+                    "feature_numbers_percentage",
+                    "feature_pergentage_more_50",
+                    "feature_pergentage_les_50",
+                    "feature_pergentage_more_90"]
+
+
+        else:
+            feature  = []
+            feature_test  = []
+
+            for tweet in tweets:
+                feature.append([
+                len(re.findall(r"[\%]", tweet.text)),
+                len(re.findall(r"[0-9\.]{1,}\%", tweet.text)),
+                len(re.findall(r"[^0-9][5-9]{1}[0-9]{1}(\.[0-9]{0,})?\%", tweet.text)),
+                len(re.findall(r"[^0-9][0-4]{1}[0-9]{1}(\.[0-9]{0,})?\%", tweet.text)),
+                len(re.findall(r"[^0-9][9]{1}[0-9]{1}(\.[0-9]{0,})?\%", tweet.text)),
+                ]
+
+            )
+
+
+            for tweet in tweet_test:
+                feature_test.append([
+                len(re.findall(r"[\%]", tweet.text)),
+                len(re.findall(r"[0-9\.]{1,}\%", tweet.text)),
+                len(re.findall(r"[^0-9][5-9]{1}[0-9]{1}(\.[0-9]{0,})?\%", tweet.text)),
+                len(re.findall(r"[^0-9][0-4]{1}[0-9]{1}(\.[0-9]{0,})?\%", tweet.text)),
+                len(re.findall(r"[^0-9][9]{1}[0-9]{1}(\.[0-9]{0,})?\%", tweet.text)),
+                ]
+
+            )
+
+
+            return csr_matrix(np.vstack(feature)),csr_matrix(np.vstack(feature_test)),\
+                   ["feature_percentage",
+                    "feature_numbers_percentage",
+                    "feature_pergentage_more_50",
+                    "feature_pergentage_les_50",
+                    "feature_pergentage_more_90"]
+
+
 #################################
 #lessicals
 ################################

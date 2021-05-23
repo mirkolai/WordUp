@@ -54,16 +54,16 @@ feature_types = feature_manager.get_availablefeaturetypes()
 """
 or you could include only desired features"""
 feature_types=[
-               #"ngrams",
-               #"chargrams",
-               #"puntuactionmarks",
-               #"capitalizedletters",
-               #"laughter",
+               #"ngrams", #1-3 grammi lower binary
+               #"chargrams", #2-5 chargrammi lower binary
+               #"puntuactionmarks", #6 feature che contano i più comuni segni di punteggiatura
+               #"capitalizedletters", #3 feature sull'uso delle maiuscole
+               #"laughter", #1 featura che conta le risate
 
-               #"bio",
-               #"cue_words",
-               #"linguistic_words",
-
+               #"bio", #bag of word binary sul testo della bio
+               #"cue_words",  #8 feature che contano la presenza di 8 categorie di parole
+               #"linguistic_words", #6 feature che contano la presenza di 6 categorie di parole
+                "statistics", #5 feature che verificano la presenza di valori percentuali
                #"upos"   ,
                #"deprelneg",
                #"deprel" ,
@@ -73,12 +73,11 @@ feature_types=[
                #"Sidorovbigramsform",
                #"Sidorovbigramsupostag",
                #"Sidorovbigramsdeprel" ,
-               # "target_context_one",
-               # "target_context_two",
-                "tweet_info",
-                "tweet_info_source",
-                "user_info",
-
+               # "target_context_one", #200 feature che rappresentano gli embeddings della previus e next word rispetto al target nell'albero delle dipendenze
+               # "target_context_two", #400 feature che rappresentano gli embeddings delle 2 previus e 2 next word rispetto al target nell'albero delle dipendenze
+                "tweet_info", #"retweet_count","favourite_count","year","month","hour"
+                "tweet_info_source", #one hot encoding sul tipo di media utilizzato per postare il tweet
+                "user_info", #"statuses_count","followers_count","friends_count","listed_count","year","month","tweet_posted_at_day"
              ]
 #f-avg 0.828633746118431 0.01905251483131286
 

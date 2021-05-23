@@ -1,4 +1,6 @@
 import csv
+import time
+
 from User import make_user
 from Tweet import make_tweet
 from Instance import make_istance
@@ -8,7 +10,8 @@ from Model_udpipe import Model_udpipe
 import glob
 import os
 import joblib
-
+import requests
+import re
 from resource_bio import make_bio
 from resource_lessical_diversity import make_lessical_diversity
 
@@ -25,6 +28,7 @@ class Database_manager(object):
     lessical_diversities=None
     networks_metrics=None
     networks_mds=None
+    extended_url=None
 
     def __init__(self,language,partition):
         if language not in ["es","eu"]:
@@ -197,6 +201,39 @@ class Database_manager(object):
 
 
 
+    def return_extended_url(self,text):
+        file_name="cache/" + self.language +'_extended_url_' + self.partition + '.pkl'
+        print("reading ",file_name)
+        urls=re.findall(r'(https?://\S+)', text)
+        print("shorten urls",urls)
+        if len(urls)==0:
+            return None
+
+        if self.extended_url is not None:
+            pass
+        elif os.path.isfile(file_name) :
+            self.extended_url = joblib.load(file_name)
+        else:
+            self.extended_url={}
+        if urls[0] in self.extended_url:
+            return self.extended_url[urls[0]]
+        else:
+            try:
+                session = requests.Session()  # so connections are recycled
+                resp = session.head(urls[0], allow_redirects=True)
+                full_url=resp.url
+                print("full_url",full_url)
+                if full_url==urls[0]:
+                    p
+                self.extended_url[urls[0]]=full_url
+                time.sleep(3)
+                joblib.dump(self.extended_url, file_name)
+            except Exception as e:
+                print(e)
+                return None
+
+        return self.extended_url[urls[0]]
+
 
     def return_lessical_diversity(self, tweet_id):
 
@@ -332,7 +369,8 @@ if __name__== "__main__":
     database_manager = Database_manager("es","train")
     istances=database_manager.return_istances()
     for istance in istances:
-        print(istance.tweet.source)
-        print(istance.user.followers_count)
-        print(istance.lessical_diversity)
-        print(istance.networks_metrics)
+        print(database_manager.return_extended_url(istance.text))
+        #print(istance.tweet.source)
+        #print(istance.user.followers_count)
+        #print(istance.lessical_diversity)
+        #print(istance.networks_metrics)
