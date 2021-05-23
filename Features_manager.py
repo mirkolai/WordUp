@@ -2,7 +2,9 @@ from sklearn.feature_extraction.text import CountVectorizer
 import numpy as np
 import re
 from scipy.sparse import csr_matrix, hstack
-
+from datetime import datetime
+from resource_lessical_cue_words import Cue_Words
+from resource_lessical_linguistic_words import Linguistic_Words
 
 
 class Features_manager(object):
@@ -25,20 +27,32 @@ class Features_manager(object):
 
         """
         self.global_feature_types_list={
-             "ngrams":           self.get_ngrams_features,
-             #"chargrams":       self.get_nchargrams_features,
-             # "puntuactionmarks":self.get_puntuaction_marks_features,
-             # "capitalizedletters":self.get_capitalized_letters_features,
-             # "laughter":self.get_laughter_features,
-             # "upos":self.get_upos_features,
-             # "deprelneg":self.get_deprelneg_features,
-            # "deprel":self.get_deprel_features,
-             # "relationformVERB"   :self.get_relationformVERB_features,
-             # "relationformNOUN"   :self.get_relationformNOUN_features,
-             # "relationformADJ"    :self.get_relationformADJ_features,
-            #"Sidorovbigramsform"   :self.get_Sidorov_bigramsform_features,
-            # "Sidorovbigramsupostag":self.get_Sidorov_bigramsupostag_features,
-            #"Sidorovbigramsdeprel" :self.get_Sidorov_bigramsdeprel_features,
+             "ngrams"               :self.get_ngrams_features,
+             "chargrams"            :self.get_nchargrams_features,
+             "puntuactionmarks"     :self.get_puntuaction_marks_features,
+             "capitalizedletters"   :self.get_capitalized_letters_features,
+             "laughter"             :self.get_laughter_features,
+
+
+
+             "cue_words"             :self.get_cue_words_features,
+             "linguistic_words"      :self.get_linguistic_words_features,
+
+              "bio"                 :self.get_bio_features,
+
+             "upos"                 :self.get_upos_features,
+             "deprelneg"            :self.get_deprelneg_features,
+             "deprel"               :self.get_deprel_features,
+             "relationformVERB"     :self.get_relationformVERB_features,
+             "relationformNOUN"     :self.get_relationformNOUN_features,
+             "relationformADJ"      :self.get_relationformADJ_features,
+             "Sidorovbigramsform"   :self.get_Sidorov_bigramsform_features,
+             "Sidorovbigramsupostag":self.get_Sidorov_bigramsupostag_features,
+             "Sidorovbigramsdeprel" :self.get_Sidorov_bigramsdeprel_features,
+
+             "tweet_info"            :self.get_tweet_info_features,
+             "user_info"             :self.get_user_info_features,
+             "tweet_info_source"     :self.get_tweet_info_source_features,
 
         }
 
@@ -180,7 +194,9 @@ class Features_manager(object):
 
             return all_X, all_X_test, all_feature_names, np.array(all_feature_index)
 
-
+#################################
+# Structural
+#################################
 
     def get_ngrams_features(self, tweets,tweet_test=None):
 
@@ -226,21 +242,6 @@ class Features_manager(object):
             feature_names=tfidfVectorizer.get_feature_names()
 
             return X_train, X_test, feature_names
-
-    ####################################################################
-    ####################################################################
-    ####################################################################
-    ####################################################################
-    ####################################################################
-    ####################################################################
-    ####################################################################
-    ####################################################################
-    ####################################################################
-    ####################################################################
-    ####################################################################
-    ####################################################################
-    ####################################################################
-    ####################################################################
 
     def get_nchargrams_features(self, tweets,tweet_test=None):
 
@@ -290,6 +291,55 @@ class Features_manager(object):
 
             return X_train, X_test, feature_names
 
+
+
+    def get_bio_features(self, tweets,tweet_test=None):
+
+
+        tfidfVectorizer = CountVectorizer(ngram_range=(1,1),
+                                          analyzer="word",
+                                          #stop_words="english",
+                                          lowercase=True,
+                                          binary=True,
+                                          max_features=500000)
+
+        if tweet_test is None:
+            feature = []
+            for tweet in tweets:
+                 feature.append(tweet.bio)
+
+
+            tfidfVectorizer = tfidfVectorizer.fit(feature)
+
+            X = tfidfVectorizer.transform(feature)
+
+            feature_names=tfidfVectorizer.get_feature_names()
+
+            return X, feature_names
+        else:
+            feature  = []
+            feature_test  = []
+            for tweet in tweets:
+
+                feature.append(tweet.bio)
+
+            for tweet in tweet_test:
+
+                feature_test.append(tweet.bio)
+
+
+            tfidfVectorizer = tfidfVectorizer.fit(feature)
+
+            X_train = tfidfVectorizer.transform(feature)
+            X_test = tfidfVectorizer.transform(feature_test)
+
+            feature_names=tfidfVectorizer.get_feature_names()
+
+            return X_train, X_test, feature_names
+
+#################################
+# Structural 2
+#################################
 
     def get_puntuaction_marks_features(self,tweets,tweet_test=None):
 
@@ -365,12 +415,12 @@ class Features_manager(object):
 
         if tweet_test is None:
             feature  = []
-
             for tweet in tweets:
                 feature.append([
-                len(re.findall(r"[A-Z][a-z]{1,}", tweet.text_accents_stripped)),
-                len(re.findall(r"[A-Z]{2,}", tweet.text_accents_stripped)),
-                len(re.findall(r"[a-z]{1,}[A-Z]{1,}[a-z]{1,}", tweet.text_accents_stripped)),]
+                len(re.findall(r"[:upper:]{2,}", tweet.text)),
+                len(re.findall(r"[:upper:][:lower:]{1,}", tweet.text)),
+                len(re.findall(r"[:lower:]{1,}[:upper:]{1,}[:lower:]{1,}", tweet.text)),
+                ]
 
             )
 
@@ -387,31 +437,33 @@ class Features_manager(object):
 
             for tweet in tweets:
                 feature.append([
-                len(re.findall(r"[A-Z][a-z]{1,}", tweet.text_accents_stripped)),
-                len(re.findall(r"[A-Z]{2,}", tweet.text_accents_stripped)),
-                len(re.findall(r"[a-z]{1,}[A-Z]{1,}[a-z]{1,}", tweet.text_accents_stripped)),])
+                len(re.findall(r"[:upper:]{2,}", tweet.text)),
+                len(re.findall(r"[:upper:][:lower:]{1,}", tweet.text)),
+                len(re.findall(r"[:lower:]{1,}[:upper:]{1,}[:lower:]{1,}", tweet.text)),
+                ]
 
+            )
 
             for tweet in tweet_test:
                 feature_test.append([
-                len(re.findall(r"[A-Z][a-z]{1,}", tweet.text_accents_stripped)),
-                len(re.findall(r"[A-Z]{2,}", tweet.text_accents_stripped)),
-                len(re.findall(r"[a-z]{1,}[A-Z]{1,}[a-z]{1,}", tweet.text_accents_stripped)),])
+                len(re.findall(r"[:upper:]{2,}", tweet.text)),
+                len(re.findall(r"[:upper:][:lower:]{1,}", tweet.text)),
+                len(re.findall(r"[:lower:]{1,}[:upper:]{1,}[:lower:]{1,}", tweet.text)),
+                ]
 
+            )
 
             return csr_matrix(np.vstack(feature)),csr_matrix(np.vstack(feature_test)),\
                    ["feature_words_all_capital",
                     "feature_words_start_with_capital",
                     "feature_words_with_a_capital_letter_in_the_middle",]
 
-
-
     def get_laughter_features(self,tweets,tweet_test=None):
 
 
         if tweet_test is None:
             feature = []
-
+            #migliorare
             for tweet in tweets:
                 feature.append([
                 len(re.findall(r"((ah[ ]{0,}){2,}|(eh[ ]{0,}){2,}|(ih[ ]{0,}){2,}|(ja[ ]{0,}){2,}|(je[ ]{0,}){2,}|(ji[ ]{0,}){2,})", tweet.text))]
@@ -441,8 +493,72 @@ class Features_manager(object):
 
             return csr_matrix(np.vstack(feature)),csr_matrix(np.vstack(feature_test)),\
                    ["feature_laughter"]
+#################################
+#lessicals
+################################
+    def get_cue_words_features(self, tweets, tweets_test=None):
+        print("Calculating cue_words feature...")
+        model = Cue_Words(tweets[0].language)
 
+        if tweets_test is None:
+            feature = []
+            for tweet in tweets:
+                concepts, values = model.get_feature(tweet)
+                feature.append(values)
 
+            feature_names = concepts
+
+            return csr_matrix(np.vstack(feature)), feature_names
+        else:
+            feature = []
+            feature_test = []
+            for tweet in tweets:
+                concepts, values = model.get_feature(tweet)
+                feature.append(values)
+
+            feature_names = concepts
+
+            for tweet in tweets:
+                concepts, values = model.get_feature(tweet)
+                feature.append(values)
+
+            feature_names = concepts
+
+            return csr_matrix(np.vstack(feature)), csr_matrix(np.vstack(feature_test)), feature_names
+
+    def get_linguistic_words_features(self, tweets, tweets_test=None):
+        print("Calculating cue_words feature...")
+        model = Linguistic_Words(tweets[0].language)
+
+        if tweets_test is None:
+            feature = []
+            for tweet in tweets:
+                concepts, values = model.get_feature(tweet)
+                feature.append(values)
+
+            feature_names = concepts
+
+            return csr_matrix(np.vstack(feature)), feature_names
+        else:
+            feature = []
+            feature_test = []
+            for tweet in tweets:
+                concepts, values = model.get_feature(tweet)
+                feature.append(values)
+
+            feature_names = concepts
+
+            for tweet in tweets:
+                concepts, values = model.get_feature(tweet)
+                feature.append(values)
+
+            feature_names = concepts
+
+            return csr_matrix(np.vstack(feature)), csr_matrix(np.vstack(feature_test)), feature_names
+
+#################################
+# Udpipe
+#################################
     def get_upos_features(self, tweets, tweet_test=None):
         """
 
@@ -494,8 +610,6 @@ class Features_manager(object):
             feature_names = tfidfVectorizer.get_feature_names()
 
             return X_train, X_test, feature_names
-
-
 
     def get_deprelneg_features(self, tweets, tweet_test=None):
         """
@@ -550,7 +664,6 @@ class Features_manager(object):
 
             return X_train, X_test, feature_names
 
-
     def get_deprel_features(self, tweets, tweet_test=None):
         """
 
@@ -603,7 +716,6 @@ class Features_manager(object):
             feature_names = tfidfVectorizer.get_feature_names()
 
             return X_train, X_test, feature_names
-
 
     def get_relationformVERB_features(self, tweets, tweet_test=None):
         """
@@ -764,7 +876,6 @@ class Features_manager(object):
 
             return X_train, X_test, feature_names
 
-
     def get_Sidorov_bigramsform_features(self, tweets, tweet_test=None):
         """
 
@@ -817,7 +928,6 @@ class Features_manager(object):
             feature_names = tfidfVectorizer.get_feature_names()
 
             return X_train, X_test, feature_names
-
 
     def get_Sidorov_bigramsupostag_features(self, tweets, tweet_test=None):
         """
@@ -924,6 +1034,325 @@ class Features_manager(object):
 
                 return X_train, X_test, feature_names
 
+
+    def get_relationformVERB_features(self, tweets, tweet_test=None):
+        """
+        :param tweets: Array of  Tweet objects. Training set.
+        :param tweet_test: Optional Array of  Tweet objects. Test set.
+        :return:
+        X_train: The feature space of the training set
+        X_test: The feature space of the test set, if test  set was defined
+        feature_names:  An array containing the names of the features used  for  creating the feature space
+        """
+        # CountVectorizer return a numpy matrix
+        # row number of tweets
+        # column number of 1-3gram in the dictionary
+
+        tfidfVectorizer = CountVectorizer(ngram_range=(1,1),
+                                          analyzer="word",
+                                          # stop_words="english",
+                                          lowercase=True,
+                                          binary=True,
+                                          max_features=500000)
+
+        if tweet_test is None:
+            feature = []
+            for tweet in tweets:
+                feature.append(tweet.relationVERB)
+
+
+            tfidfVectorizer = tfidfVectorizer.fit(feature)
+
+            X = tfidfVectorizer.transform(feature)
+
+            feature_names = tfidfVectorizer.get_feature_names()
+
+            return X, feature_names
+        else:
+            feature = []
+            feature_test = []
+            for tweet in tweets:
+                feature.append(tweet.relationVERB)
+
+            for tweet in tweet_test:
+                feature_test.append(tweet.relationVERB)
+
+            tfidfVectorizer = tfidfVectorizer.fit(feature)
+
+            X_train = tfidfVectorizer.transform(feature)
+            X_test = tfidfVectorizer.transform(feature_test)
+
+            feature_names = tfidfVectorizer.get_feature_names()
+
+            return X_train, X_test, feature_names
+
+    def get_relationformNOUN_features(self, tweets, tweet_test=None):
+        """
+        :param tweets: Array of  Tweet objects. Training set.
+        :param tweet_test: Optional Array of  Tweet objects. Test set.
+        :return:
+        X_train: The feature space of the training set
+        X_test: The feature space of the test set, if test  set was defined
+        feature_names:  An array containing the names of the features used  for  creating the feature space
+        """
+        # CountVectorizer return a numpy matrix
+        # row number of tweets
+        # column number of 1-3gram in the dictionary
+
+        tfidfVectorizer = CountVectorizer(ngram_range=(1,1),
+                                          analyzer="word",
+                                          # stop_words="english",
+                                          lowercase=True,
+                                          binary=True,
+                                          max_features=500000)
+
+        if tweet_test is None:
+            feature = []
+            for tweet in tweets:
+                feature.append(tweet.relationNOUN)
+
+
+            tfidfVectorizer = tfidfVectorizer.fit(feature)
+
+            X = tfidfVectorizer.transform(feature)
+
+            feature_names = tfidfVectorizer.get_feature_names()
+
+            return X, feature_names
+        else:
+            feature = []
+            feature_test = []
+            for tweet in tweets:
+                feature.append(tweet.relationNOUN)
+
+            for tweet in tweet_test:
+                feature_test.append(tweet.relationNOUN)
+
+            tfidfVectorizer = tfidfVectorizer.fit(feature)
+
+            X_train = tfidfVectorizer.transform(feature)
+            X_test = tfidfVectorizer.transform(feature_test)
+
+            feature_names = tfidfVectorizer.get_feature_names()
+
+            return X_train, X_test, feature_names
+
+    def get_relationformADJ_features(self, tweets, tweet_test=None):
+        """
+        :param tweets: Array of  Tweet objects. Training set.
+        :param tweet_test: Optional Array of  Tweet objects. Test set.
+        :return:
+        X_train: The feature space of the training set
+        X_test: The feature space of the test set, if test  set was defined
+        feature_names:  An array containing the names of the features used  for  creating the feature space
+        """
+        # CountVectorizer return a numpy matrix
+        # row number of tweets
+        # column number of 1-3gram in the dictionary
+
+        tfidfVectorizer = CountVectorizer(ngram_range=(1,1),
+                                          analyzer="word",
+                                          # stop_words="english",
+                                          lowercase=True,
+                                          binary=True,
+                                          max_features=500000)
+
+        if tweet_test is None:
+            feature = []
+            for tweet in tweets:
+                feature.append(tweet.relationADJ)
+
+
+            tfidfVectorizer = tfidfVectorizer.fit(feature)
+
+            X = tfidfVectorizer.transform(feature)
+
+            feature_names = tfidfVectorizer.get_feature_names()
+
+            return X, feature_names
+        else:
+            feature = []
+            feature_test = []
+            for tweet in tweets:
+                feature.append(tweet.relationADJ)
+
+            for tweet in tweet_test:
+                feature_test.append(tweet.relationADJ)
+
+            tfidfVectorizer = tfidfVectorizer.fit(feature)
+
+            X_train = tfidfVectorizer.transform(feature)
+            X_test = tfidfVectorizer.transform(feature_test)
+
+            feature_names = tfidfVectorizer.get_feature_names()
+
+            return X_train, X_test, feature_names
+
+####################################
+#base features
+#####################################
+
+    def get_tweet_info_features(self, tweets,tweet_test=None):
+
+
+
+        if tweet_test is None:
+            feature = []
+            for tweet in tweets:
+                feature.append([
+                    int(tweet.tweet.retweet_count),
+                    int(tweet.tweet.favourite_count),
+                    datetime.strptime(tweet.tweet.created_at, '%Y-%m-%d %H:%M:%S').year,
+                    datetime.strptime(tweet.tweet.created_at, '%Y-%m-%d %H:%M:%S').month,
+                    datetime.strptime(tweet.tweet.created_at, '%Y-%m-%d %H:%M:%S').hour,
+                ])
+
+            return csr_matrix(np.vstack(feature)),\
+                   ["retweet_count",
+                    "favourite_count",
+                    "year",
+                    "month",
+                    "hour"]
+        else:
+            feature  = []
+            feature_test  = []
+
+            for tweet in tweets:
+                feature.append([
+                    int(tweet.tweet.retweet_count),
+                    int(tweet.tweet.favourite_count),
+                    datetime.strptime(tweet.tweet.created_at, '%Y-%m-%d %H:%M:%S').year,
+                    datetime.strptime(tweet.tweet.created_at, '%Y-%m-%d %H:%M:%S').month,
+                    datetime.strptime(tweet.tweet.created_at, '%Y-%m-%d %H:%M:%S').hour,
+                ])
+
+
+            for tweet in tweet_test:
+                feature_test.append([
+                    int(tweet.tweet.retweet_count),
+                    int(tweet.tweet.favourite_count),
+                    datetime.strptime(tweet.tweet.created_at, '%Y-%m-%d %H:%M:%S').year,
+                    datetime.strptime(tweet.tweet.created_at, '%Y-%m-%d %H:%M:%S').month,
+                    datetime.strptime(tweet.tweet.created_at, '%Y-%m-%d %H:%M:%S').hour,
+                ])
+
+            return csr_matrix(np.vstack(feature)),csr_matrix(np.vstack(feature_test)),\
+                   ["retweet_count",
+                    "favourite_count",
+                    "year",
+                    "month",
+                    "hour"]
+
+
+    def get_user_info_features(self, tweets,tweet_test=None):
+
+
+        #,created_at
+        if tweet_test is None:
+            feature = []
+            for tweet in tweets:
+                feature.append([
+                    int(tweet.user.statuses_count),
+                    int(tweet.user.followers_count),
+                    int(tweet.user.friends_count),
+                    int(tweet.user.listed_count),
+                    datetime.strptime(tweet.user.created_at, '%Y-%m-%d %H:%M:%S').year,
+                    datetime.strptime(tweet.user.created_at, '%Y-%m-%d %H:%M:%S').month,
+                    int(tweet.user.statuses_count)/((datetime.strptime(tweet.tweet.created_at, '%Y-%m-%d %H:%M:%S')-datetime.strptime(tweet.user.created_at, '%Y-%m-%d %H:%M:%S')).days+0.1)
+                ])
+
+            return csr_matrix(np.vstack(feature)),\
+                   ["statuses_count",
+                    "followers_count",
+                    "friends_count",
+                    "listed_count",
+                    "year",
+                    "month",
+                    "tweet_posted_at_day"]
+        else:
+            feature  = []
+            feature_test  = []
+
+            for tweet in tweets:
+                feature.append([
+                    int(tweet.user.statuses_count),
+                    int(tweet.user.followers_count),
+                    int(tweet.user.friends_count),
+                    int(tweet.user.listed_count),
+                    datetime.strptime(tweet.user.created_at, '%Y-%m-%d %H:%M:%S').year,
+                    datetime.strptime(tweet.created_at, '%Y-%m-%d %H:%M:%S').month,
+                    int(tweet.user.statuses_count)/((datetime.strptime(tweet.tweet.created_at, '%Y-%m-%d %H:%M:%S')-datetime.strptime(tweet.user.created_at, '%Y-%m-%d %H:%M:%S')).days+0.1)
+                ])
+
+
+            for tweet in tweet_test:
+                feature_test.append([
+                    int(tweet.user.statuses_count),
+                    int(tweet.user.followers_count),
+                    int(tweet.user.friends_count),
+                    int(tweet.user.listed_count),
+                    datetime.strptime(tweet.user.created_at, '%Y-%m-%d %H:%M:%S').year,
+                    datetime.strptime(tweet.created_at, '%Y-%m-%d %H:%M:%S').month,
+                    int(tweet.user.statuses_count)/((datetime.strptime(tweet.tweet.created_at, '%Y-%m-%d %H:%M:%S')-datetime.strptime(tweet.user.created_at, '%Y-%m-%d %H:%M:%S')).days+0.1)
+                ])
+
+            return csr_matrix(np.vstack(feature)),csr_matrix(np.vstack(feature_test)),\
+                   ["statuses_count",
+                    "followers_count",
+                    "friends_count",
+                    "listed_count",
+                    "year",
+                    "month",
+                    "tweet_posted_at_day"]
+
+    def get_tweet_info_source_features(self, tweets,tweet_test=None):
+
+
+        tfidfVectorizer = CountVectorizer(ngram_range=(1,1),
+                                          analyzer="word",
+                                          #stop_words="english",
+                                          lowercase=True,
+                                          binary=True,
+                                          max_features=500000)
+
+        if tweet_test is None:
+            feature = []
+            for tweet in tweets:
+
+                feature.append(tweet.tweet.source)
+
+
+            tfidfVectorizer = tfidfVectorizer.fit(feature)
+
+            X = tfidfVectorizer.transform(feature)
+
+            feature_names=tfidfVectorizer.get_feature_names()
+
+            return X, feature_names
+        else:
+            feature  = []
+            feature_test  = []
+            for tweet in tweets:
+
+                feature.append(tweet.tweet.source)
+
+            for tweet in tweet_test:
+
+                feature_test.append(tweet.tweet.source)
+
+
+            tfidfVectorizer = tfidfVectorizer.fit(feature)
+
+            X_train = tfidfVectorizer.transform(feature)
+            X_test = tfidfVectorizer.transform(feature_test)
+
+            feature_names=tfidfVectorizer.get_feature_names()
+
+            return X_train, X_test, feature_names
+
+
+
+##################################
 #inizializer
 def make_feature_manager():
 

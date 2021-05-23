@@ -1,10 +1,17 @@
 import csv
 from User import make_user
 from Tweet import make_tweet
-from Istance import make_istance
+from Instance import make_istance
+from Networks_Metrics import  make_networks_metrics
+from Networks_MDS import  make_networks_mds
+from Model_udpipe import Model_udpipe
 import glob
 import os
 import joblib
+
+from resource_bio import make_bio
+from resource_lessical_diversity import make_lessical_diversity
+
 
 class Database_manager(object):
 
@@ -12,7 +19,12 @@ class Database_manager(object):
     partition=None
     istances=None
     tweets=None
+    model_udpipe=None
     users=None
+    bios=None
+    lessical_diversities=None
+    networks_metrics=None
+    networks_mds=None
 
     def __init__(self,language,partition):
         if language not in ["es","eu"]:
@@ -21,7 +33,7 @@ class Database_manager(object):
         if partition not in ["train","test"]:
             raise Exception("partition not supported")
         self.partition=partition
-
+        self.model_udpipe=Model_udpipe(language)
 
     def return_istances(self):
         file_name="cache/" + self.language +'_' + self.partition + '.pkl'
@@ -29,7 +41,7 @@ class Database_manager(object):
         if self.istances is not None:
             pass
         elif os.path.isfile(file_name) :
-            self.istances= joblib.load(file_name)
+            self.istances = joblib.load(file_name)
         else:
             self.istances=[]
             filelist = sorted(glob.glob("data/"+self.language+"_"+self.partition+"/"+self.language+"_"+self.partition+".csv"))
@@ -37,17 +49,42 @@ class Database_manager(object):
                 first = True
                 csvfile=open(file, newline='')
                 spamreader = csv.reader(csvfile, delimiter=',', quotechar='"')
-                for istance in spamreader:
+                for instance in spamreader:
+                    print(instance)
                     if not first:
-                        tweet_id=istance[0]
-                        user_id=istance[1]
-                        text=istance[2]
-                        label=istance[3]
-                        tweet=self.return_tweet(tweet_id)
-                        user=self.return_user(user_id)
-                        this_istance=make_istance(tweet_id, user_id,text,self.language,label,tweet,user)
+                        if(len(instance)>0):
+                            tweet_id=instance[0]
+                            user_id=instance[1]
+                            text=instance[2]
+                            label=instance[3]
+                            tweet=self.return_tweet(tweet_id)
+                            user=self.return_user(user_id)
+                            conllu_txt=self.model_udpipe.return_conllu_txt(text)
+                            bio=self.return_bio(user_id)
 
-                        self.istances.append(this_istance)
+                            #lessical_diversity=self.return_lessical_diversity(tweet_id)
+                            lessical_diversity=None
+                            networks_metrics={}
+                            #networks_metrics['base_friends_centrality']=self.return_networks_metrics(user_id,"base","friends","centrality")
+                            #networks_metrics['base_retweets_centrality']=self.return_networks_metrics(user_id,"base","retweets","centrality")
+                            networks_mds={}
+                            #networks_mds['base_retweets_mds']=self.return_networks_mds(user_id,"base","retweets","mds")
+                            #networks_mds['base_friends_mds']=self.return_networks_mds(user_id,"base","friends","mds")
+                            this_istance=make_istance(tweet_id,
+                                                      user_id,
+                                                      text,
+                                                      self.language,
+                                                      label,
+                                                      tweet,
+                                                      user,
+                                                      conllu_txt,
+                                                      bio,
+                                                      lessical_diversity,
+                                                      networks_metrics,
+                                                      networks_mds
+                                                      )
+
+                            self.istances.append(this_istance)
 
                     first = False
 
@@ -63,7 +100,7 @@ class Database_manager(object):
         elif os.path.isfile(file_name) :
             self.tweets= joblib.load(file_name)
         else:
-            self.tweets=[]
+            self.tweets= {}
             filelist = sorted(glob.glob("data/"+self.language+"_"+self.partition+"/"+self.language+"_tweet_"+self.partition+".csv"))
             for file in filelist:
                 first = True
@@ -81,13 +118,13 @@ class Database_manager(object):
 
                             this_tweet=make_tweet(tweet_id,user_id,retweet_count,favourite_count,source,created_at)
 
-                            self.tweets.append(this_tweet)
+                            self.tweets[tweet_id]=this_tweet
 
                     first = False
 
             joblib.dump(self.tweets, file_name)
 
-        return next(filter(lambda x: (x.tweet_id == tweet_id), self.tweets),None)
+        return self.tweets[tweet_id]
 
     def return_user(self, user_id):
         file_name="cache/" + self.language +'_user_' + self.partition + '.pkl'
@@ -97,7 +134,7 @@ class Database_manager(object):
         elif os.path.isfile(file_name) :
             self.users= joblib.load(file_name)
         else:
-            self.users=[]
+            self.users= {}
             filelist = sorted(glob.glob("data/"+self.language+"_"+self.partition+"/"+self.language+"_user_"+self.partition+".csv"))
             for file in filelist:
                 first = True
@@ -116,13 +153,169 @@ class Database_manager(object):
 
                             this_user=make_user(user_id,statuses_count,followers_count,friends_count,listed_count,created_at,emoji_in_bio)
 
-                            self.users.append(this_user)
+                            self.users[user_id]=this_user
 
                     first = False
 
             joblib.dump(self.users, file_name)
 
-        return next(filter(lambda x: (x.user_id == user_id), self.users),None)
+        return self.users[user_id]
+
+
+    def return_bio(self, user_id):
+        file_name="cache/" + self.language +'_bio.pkl'
+        print("reading ",file_name,"for user ",user_id)
+        if self.bios is not None:
+            pass
+        elif os.path.isfile(file_name) :
+            self.bios= joblib.load(file_name)
+        else:
+            self.bios= {}
+            filelist = sorted(glob.glob("resources/bio/"+self.language+"_bio.csv"))
+            for file in filelist:
+                first = True
+                csvfile=open(file, newline='')
+                spamreader = csv.reader(csvfile, delimiter=',', quotechar='"')
+                #user_id,statuses_count,followers_count,friends_count,listed_count,created_at,emoji_in_bio
+                for user in spamreader:
+                    if not first:
+                            user_id=user[0]
+                            screen_name=user[1]
+                            bio=user[2]
+
+                            this_user=make_bio(user_id, bio,screen_name)
+
+                            self.bios[user_id]=this_user
+
+                    first = False
+
+            joblib.dump(self.bios, file_name)
+
+        return  self.bios[user_id] if user_id in self.bios else make_bio(user_id, " NOBIOAVAILABLE "," NOSCREENNAMEAVAILABLE ")
+
+
+
+
+    def return_lessical_diversity(self, tweet_id):
+
+        file_name="cache/" + self.language +'_lessical_diversity_' + self.partition + '.pkl'
+        print("reading ",file_name,"for tweet ",tweet_id)
+        if self.lessical_diversities is not None:
+            pass
+        elif os.path.isfile(file_name) :
+            self.lessical_diversities= joblib.load(file_name)
+        else:
+            self.lessical_diversities= {}
+            file = "resources/lessical/diversity/" + self.language +'_' + self.partition + ".csv"
+            first = True
+            csvfile=open(file, newline='')
+            spamreader = csv.reader(csvfile, delimiter=',', quotechar='"')
+            #user_id,statuses_count,followers_count,friends_count,listed_count,created_at,emoji_in_bio
+            for tweet in spamreader:
+                if first:
+                    dimensions=tweet
+                else:
+                    current_user={}
+                    tweet_id=tweet[0]
+                    for i in range(2,len(dimensions)):
+                        current_user[dimensions[i]]=tweet[i]
+
+                    this_user=make_lessical_diversity(tweet_id,dimensions)
+
+                    self.lessical_diversities[tweet_id]=this_user
+
+                first = False
+
+        joblib.dump(self.lessical_diversities, file_name)
+
+        return self.lessical_diversities[tweet_id]
+
+
+
+
+    def return_networks_metrics(self, user_id, level, relation_type, measure_type):
+        """level: base or augmented
+           network_type: friends or retweets or retweets_timeline
+           or label_count
+
+           :return
+           dimensions: name of dimension (header of csv file)
+           values: values for the current user_id
+        """
+        file_name="cache/" + level +"_" + measure_type +"_" + self.language +'_' + relation_type + '_' + self.partition + '.pkl'
+        print("reading ",file_name,"for user ",user_id)
+        if self.networks_metrics is not None:
+            pass
+        elif os.path.isfile(file_name) :
+            self.networks_metrics= joblib.load(file_name)
+        else:
+            self.networks_metrics= {}
+            file = "resources/networks_mds/" + level +"/" + measure_type +"_" + self.language +'_' + relation_type + '_' + self.partition + ".csv"
+            first = True
+            csvfile=open(file, newline='')
+            spamreader = csv.reader(csvfile, delimiter=',', quotechar='"')
+            #user_id,statuses_count,followers_count,friends_count,listed_count,created_at,emoji_in_bio
+            for user in spamreader:
+                if first:
+                    dimensions=user
+                else:
+                    current_user={}
+                    user_id=user[0]
+                    for i in range(1,len(dimensions)):
+                        current_user[dimensions[i]]=user[i]
+
+                    this_user=make_networks_metrics(user_id,dimensions)
+
+                    self.networks_metrics[user_id]=this_user
+
+                first = False
+
+        joblib.dump(self.networks_metrics, file_name)
+
+        return self.networks_metrics[user_id]
+
+
+    def return_networks_mds(self, user_id, level, relation_type, measure_type):
+        """level: base or augmented
+           network_type: retweets
+
+           :return
+           dimensions: name of dimension (header of csv file)
+           values: values for the current user_id
+        """
+        file_name="cache/" + level +"_" + measure_type +"_" + self.language +'_' + relation_type + '_' + self.partition + '.pkl'
+        print("reading ",file_name,"for user ",user_id)
+        if self.networks_mds is not None:
+            pass
+        elif os.path.isfile(file_name) :
+            self.networks_mds= joblib.load(file_name)
+        else:
+            self.networks_mds= {}
+            file = "resources/networks_mds/" + level +"/" + measure_type +"_" + self.language +'_' + relation_type + '_' + self.partition + ".csv"
+            first = True
+            csvfile=open(file, newline='')
+            spamreader = csv.reader(csvfile, delimiter=',', quotechar='"')
+            #user_id,statuses_count,followers_count,friends_count,listed_count,created_at,emoji_in_bio
+            for user in spamreader:
+                if first:
+                    dimensions=user
+                else:
+                    current_user={}
+                    user_id=user[0]
+                    for i in range(1,len(dimensions)):
+                        current_user[dimensions[i]]=user[i]
+
+                    this_user=make_networks_metrics(user_id,dimensions)
+
+                    self.networks_mds[user_id]=this_user
+
+                first = False
+
+        joblib.dump(self.networks_mds, file_name)
+
+        return self.networks_mds[user_id]
+
+
 
 
 def make_database_manager(language,partition):
@@ -139,3 +332,5 @@ if __name__== "__main__":
     for istance in istances:
         print(istance.tweet.source)
         print(istance.user.followers_count)
+        print(istance.lessical_diversity)
+        print(istance.networks_metrics)
