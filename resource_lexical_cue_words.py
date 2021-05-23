@@ -9,7 +9,7 @@ import re
 
 from Database_manager import make_database_manager
 
-class Linguistic_Words(object):
+class Cue_Words(object):
 
     pattern_split = re.compile(r"\W+")
     cue_words_categories={}
@@ -19,7 +19,7 @@ class Linguistic_Words(object):
     embeddings=None
 
     def __init__(self,language):
-        print("Loading linguistic words for "+language+"...")
+        print("Loading cue words for "+language+"...")
 
         self.embeddings=FastText.load("resources/embeddings/"+language+"-embeddings")
         self.stop_words={}
@@ -34,7 +34,7 @@ class Linguistic_Words(object):
             infile.close()
         else:
             self.similar_words_cache = {}
-        file_names=glob.glob("resources/lessical/linguistic_words/*")
+        file_names=glob.glob("resources/lexical/cue_words/*")
         #print(language,len(file_names))
         for file_name in file_names:
             concept=file_name.split("/")[-1].replace("_en_es_eu.csv","")
@@ -86,7 +86,7 @@ if __name__ == '__main__':
     language="es"
     database_manager = make_database_manager(language,"train")
     instances = numpy.array(database_manager.return_istances())
-    model = Linguistic_Words("es")
+    model = Cue_Words("es")
 
     for instance in instances:
         concepts, values=model.get_feature(instance)

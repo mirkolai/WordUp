@@ -43,7 +43,7 @@ class Instance(object):
 
 
 
-        self.lessical_diversity=lessical_diversity
+        self.lexical_diversity=lessical_diversity
         #self.networks_metrics_base_centrality_friend=networks_metrics["base_friends_centrality"]
         #self.networks_metrics_base_centrality_retweet=networks_metrics["base_retweets_centrality"]
         #self.networks_metrics_base_mds_retweet=networks_mds["base_retweets_mds"]

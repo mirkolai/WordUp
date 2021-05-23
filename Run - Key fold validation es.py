@@ -63,7 +63,8 @@ feature_types=[
                #"bio", #bag of word binary sul testo della bio
                #"cue_words",  #8 feature che contano la presenza di 8 categorie di parole
                #"linguistic_words", #6 feature che contano la presenza di 6 categorie di parole
-                "statistics", #5 feature che verificano la presenza di valori percentuali
+               "lexical_diversity",#il numero di features varia aa seconda della lingua, comprende alcune metriche di complessità linguistic
+               "statistics", #5 feature che verificano la presenza di valori percentuali
                #"upos"   ,
                #"deprelneg",
                #"deprel" ,
@@ -75,9 +76,9 @@ feature_types=[
                #"Sidorovbigramsdeprel" ,
                # "target_context_one", #200 feature che rappresentano gli embeddings della previus e next word rispetto al target nell'albero delle dipendenze
                # "target_context_two", #400 feature che rappresentano gli embeddings delle 2 previus e 2 next word rispetto al target nell'albero delle dipendenze
-                "tweet_info", #"retweet_count","favourite_count","year","month","hour"
-                "tweet_info_source", #one hot encoding sul tipo di media utilizzato per postare il tweet
-                "user_info", #"statuses_count","followers_count","friends_count","listed_count","year","month","tweet_posted_at_day"
+               #"tweet_info", #"retweet_count","favourite_count","year","month","hour"
+               #"tweet_info_source", #one hot encoding sul tipo di media utilizzato per postare il tweet
+               #"user_info", #"statuses_count","followers_count","friends_count","listed_count","year","month","tweet_posted_at_day"
              ]
 #f-avg 0.828633746118431 0.01905251483131286
 

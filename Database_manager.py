@@ -13,7 +13,7 @@ import joblib
 import requests
 import re
 from resource_bio import make_bio
-from resource_lessical_diversity import make_lessical_diversity
+from resource_lexical_diversity import make_lexical_diversity
 
 
 class Database_manager(object):
@@ -25,7 +25,7 @@ class Database_manager(object):
     model_udpipe=None
     users=None
     bios=None
-    lessical_diversities=None
+    lexical_diversities=None
     networks_metrics=None
     networks_mds=None
     extended_url=None
@@ -66,13 +66,11 @@ class Database_manager(object):
                             conllu_txt=self.model_udpipe.return_conllu_txt(text)
                             bio=self.return_bio(user_id)
 
+                            lexical_diversity=self.return_lexical_diversity(tweet_id)
 
-
-                            #lessical_diversity=self.return_lessical_diversity(tweet_id)
-                            lessical_diversity=None
                             networks_metrics={}
-                            #networks_metrics['base_friends_centrality']=self.return_networks_metrics(user_id,"base","friends","centrality")
-                            #networks_metrics['base_retweets_centrality']=self.return_networks_metrics(user_id,"base","retweets","centrality")
+                            networks_metrics['base_friends_centrality']=self.return_networks_metrics(user_id,"base","friends","centrality")
+                            networks_metrics['base_retweets_centrality']=self.return_networks_metrics(user_id,"base","retweets","centrality")
                             networks_mds={}
                             #networks_mds['base_retweets_mds']=self.return_networks_mds(user_id,"base","retweets","mds")
                             #networks_mds['base_friends_mds']=self.return_networks_mds(user_id,"base","friends","mds")
@@ -85,7 +83,7 @@ class Database_manager(object):
                                                       user,
                                                       conllu_txt,
                                                       bio,
-                                                      lessical_diversity,
+                                                      lexical_diversity,
                                                       networks_metrics,
                                                       networks_mds
                                                       )
@@ -235,17 +233,17 @@ class Database_manager(object):
         return self.extended_url[urls[0]]
 
 
-    def return_lessical_diversity(self, tweet_id):
+    def return_lexical_diversity(self, tweet_id):
 
-        file_name="cache/" + self.language +'_lessical_diversity_' + self.partition + '.pkl'
+        file_name="cache/" + self.language +'_lexical_diversity_' + self.partition + '.pkl'
         print("reading ",file_name,"for tweet ",tweet_id)
-        if self.lessical_diversities is not None:
+        if self.lexical_diversities is not None:
             pass
         elif os.path.isfile(file_name) :
-            self.lessical_diversities= joblib.load(file_name)
+            self.lexical_diversities= joblib.load(file_name)
         else:
-            self.lessical_diversities= {}
-            file = "resources/lessical/diversity/" + self.language +'_' + self.partition + ".csv"
+            self.lexical_diversities= {}
+            file = "resources/lexical/diversity/"+ self.language +'_lexical_diversity_' + self.partition + ".csv"
             first = True
             csvfile=open(file, newline='')
             spamreader = csv.reader(csvfile, delimiter=',', quotechar='"')
@@ -259,15 +257,15 @@ class Database_manager(object):
                     for i in range(2,len(dimensions)):
                         current_user[dimensions[i]]=tweet[i]
 
-                    this_user=make_lessical_diversity(tweet_id,dimensions)
+                    this_user=make_lexical_diversity(tweet_id,current_user)
 
-                    self.lessical_diversities[tweet_id]=this_user
+                    self.lexical_diversities[tweet_id]=this_user
 
                 first = False
 
-        joblib.dump(self.lessical_diversities, file_name)
+        joblib.dump(self.lexical_diversities, file_name)
 
-        return self.lessical_diversities[tweet_id]
+        return self.lexical_diversities[tweet_id]
 
 
 
@@ -289,7 +287,7 @@ class Database_manager(object):
             self.networks_metrics= joblib.load(file_name)
         else:
             self.networks_metrics= {}
-            file = "resources/networks_mds/" + level +"/" + measure_type +"_" + self.language +'_' + relation_type + '_' + self.partition + ".csv"
+            file = "resources/networks_metrics/" + level +"/" + measure_type +"_" + self.language +'_' + relation_type + '_' + self.partition + ".csv"
             first = True
             csvfile=open(file, newline='')
             spamreader = csv.reader(csvfile, delimiter=',', quotechar='"')
@@ -303,7 +301,7 @@ class Database_manager(object):
                     for i in range(1,len(dimensions)):
                         current_user[dimensions[i]]=user[i]
 
-                    this_user=make_networks_metrics(user_id,dimensions)
+                    this_user=make_networks_metrics(user_id,current_user)
 
                     self.networks_metrics[user_id]=this_user
 
@@ -367,10 +365,10 @@ def make_database_manager(language,partition):
 
 if __name__== "__main__":
     database_manager = Database_manager("es","train")
-    istances=database_manager.return_istances()
-    for istance in istances:
-        print(database_manager.return_extended_url(istance.text))
-        #print(istance.tweet.source)
+    instances=database_manager.return_istances()
+    for instance in instances:
+        #print(database_manager.return_extended_url(istance.text))
+        print(instance.lexical_diversity.dimensions)
         #print(istance.user.followers_count)
         #print(istance.lessical_diversity)
         #print(istance.networks_metrics)

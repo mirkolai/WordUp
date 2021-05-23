@@ -3,8 +3,8 @@ import numpy as np
 import re
 from scipy.sparse import csr_matrix, hstack
 from datetime import datetime
-from resource_lessical_cue_words import Cue_Words
-from resource_lessical_linguistic_words import Linguistic_Words
+from resource_lexical_cue_words import Cue_Words
+from resource_lexical_linguistic_words import Linguistic_Words
 
 
 class Features_manager(object):
@@ -34,10 +34,12 @@ class Features_manager(object):
              "laughter"             :self.get_laughter_features,
              "statistics"           :self.get_statistics_features,
 
-
-
              "cue_words"             :self.get_cue_words_features,
              "linguistic_words"      :self.get_linguistic_words_features,
+             "lexical_diversity"     :self.get_lexical_diversity_features,
+
+             #"netwrok_centrality_base_retweet" :self.get_network_centrality_base_retweet_features,
+
 
               "bio"                 :self.get_bio_features,
 
@@ -597,7 +599,7 @@ class Features_manager(object):
             return csr_matrix(np.vstack(feature)), csr_matrix(np.vstack(feature_test)), feature_names
 
     def get_linguistic_words_features(self, tweets, tweets_test=None):
-        print("Calculating cue_words feature...")
+        print("Calculating linguistic_words feature...")
         model = Linguistic_Words(tweets[0].language)
 
         if tweets_test is None:
@@ -625,6 +627,45 @@ class Features_manager(object):
             feature_names = concepts
 
             return csr_matrix(np.vstack(feature)), csr_matrix(np.vstack(feature_test)), feature_names
+
+
+
+    def get_lexical_diversity_features(self, tweets, tweets_test=None):
+        print("Calculating lexical_diversity feature...")
+        if tweets_test is None:
+            feature = []
+            for tweet in tweets:
+                concepts = [key   for key,value in tweet.lexical_diversity.dimensions.items()]
+                values   = [float(value) for key,value in tweet.lexical_diversity.dimensions.items()]
+                feature.append(values)
+
+            feature_names = concepts
+
+            return csr_matrix(np.vstack(feature)), feature_names
+        else:
+            feature = []
+            feature_test = []
+            for tweet in tweets:
+                concepts = [key   for key,value in tweet.lexical_diversity.dimensions.items()]
+                values   = [float(value) for key,value in tweet.lexical_diversity.dimensions.items()]
+                feature.append(values)
+
+            feature_names = concepts
+
+            for tweet in tweets:
+                concepts = [key   for key,value in tweet.lexical_diversity.dimensions.items()]
+                values   = [float(value) for key,value in tweet.lexical_diversity.dimensions.items()]
+                feature.append(values)
+
+            feature_names = concepts
+
+            return csr_matrix(np.vstack(feature)), csr_matrix(np.vstack(feature_test)), feature_names
+##############################################
+##networks
+##################################################
+
+
+
 
 #################################
 # Udpipe
