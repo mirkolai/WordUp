@@ -71,6 +71,10 @@ class Database_manager(object):
                             networks_metrics={}
                             networks_metrics['base_friends_centrality']=self.return_networks_metrics(user_id,"base","friends","centrality")
                             networks_metrics['base_retweets_centrality']=self.return_networks_metrics(user_id,"base","retweets","centrality")
+                            networks_metrics['augmented_retweets_centrality']=self.return_networks_metrics(user_id,"augmented","retweets","centrality")
+                            networks_metrics['base_friends_label_count']=self.return_networks_metrics(user_id,"base","friends","label_count")
+                            networks_metrics['base_retweets_label_count']=self.return_networks_metrics(user_id,"base","retweets","label_count")
+                            networks_metrics['augmented_retweets_label_count']=self.return_networks_metrics(user_id,"augmented","retweets","label_count")
                             networks_mds={}
                             #networks_mds['base_retweets_mds']=self.return_networks_mds(user_id,"base","retweets","mds")
                             #networks_mds['base_friends_mds']=self.return_networks_mds(user_id,"base","friends","mds")
@@ -165,7 +169,6 @@ class Database_manager(object):
 
         return self.users[user_id]
 
-
     def return_bio(self, user_id):
         file_name="cache/" + self.language +'_bio.pkl'
         print("reading ",file_name,"for user ",user_id)
@@ -197,8 +200,7 @@ class Database_manager(object):
 
         return  self.bios[user_id] if user_id in self.bios else make_bio(user_id, " NOBIOAVAILABLE "," NOSCREENNAMEAVAILABLE ")
 
-
-
+    #da finire"
     def return_extended_url(self,text):
         file_name="cache/" + self.language +'_extended_url_' + self.partition + '.pkl'
         print("reading ",file_name)
@@ -231,7 +233,6 @@ class Database_manager(object):
                 return None
 
         return self.extended_url[urls[0]]
-
 
     def return_lexical_diversity(self, tweet_id):
 
@@ -266,9 +267,6 @@ class Database_manager(object):
         joblib.dump(self.lexical_diversities, file_name)
 
         return self.lexical_diversities[tweet_id]
-
-
-
 
     def return_networks_metrics(self, user_id, level, relation_type, measure_type):
         """level: base or augmented
@@ -310,7 +308,6 @@ class Database_manager(object):
         joblib.dump(self.networks_metrics, file_name)
 
         return self.networks_metrics[user_id]
-
 
     def return_networks_mds(self, user_id, level, relation_type, measure_type):
         """level: base or augmented
@@ -368,7 +365,7 @@ if __name__== "__main__":
     instances=database_manager.return_istances()
     for instance in instances:
         #print(database_manager.return_extended_url(istance.text))
-        print(instance.lexical_diversity.dimensions)
+        print(instance.networks_metrics_augmented_centrality_retweet.dimensions)
         #print(istance.user.followers_count)
         #print(istance.lessical_diversity)
         #print(istance.networks_metrics)

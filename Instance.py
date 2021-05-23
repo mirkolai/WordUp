@@ -44,8 +44,12 @@ class Instance(object):
 
 
         self.lexical_diversity=lessical_diversity
-        #self.networks_metrics_base_centrality_friend=networks_metrics["base_friends_centrality"]
-        #self.networks_metrics_base_centrality_retweet=networks_metrics["base_retweets_centrality"]
+        self.networks_metrics_base_centrality_friend=networks_metrics["base_friends_centrality"]
+        self.networks_metrics_base_centrality_retweet=networks_metrics["base_retweets_centrality"]
+        self.networks_metrics_augmented_centrality_retweet=networks_metrics["augmented_retweets_centrality"]
+        self.networks_metrics_base_label_count_friend=networks_metrics["base_friends_label_count"]
+        self.networks_metrics_base_label_count_retweet=networks_metrics["base_retweets_label_count"]
+        self.networks_metrics_augmented_label_count_retweet=networks_metrics["augmented_retweets_label_count"]
         #self.networks_metrics_base_mds_retweet=networks_mds["base_retweets_mds"]
 
 

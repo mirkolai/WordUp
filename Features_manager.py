@@ -38,10 +38,15 @@ class Features_manager(object):
              "linguistic_words"      :self.get_linguistic_words_features,
              "lexical_diversity"     :self.get_lexical_diversity_features,
 
-             #"netwrok_centrality_base_retweet" :self.get_network_centrality_base_retweet_features,
+             "network_centrality_base_retweet"      :self.get_networks_metrics_base_centrality_retweet_features,
+             "network_centrality_base_friend"       :self.get_networks_metrics_base_centrality_friend_features,
+             "network_centrality_augmented_retweet" :self.get_networks_metrics_augmented_centrality_retweet_features,
 
+             "network_label_count_base_retweet"      :self.get_networks_metrics_base_label_count_retweet_features,
+             "network_label_count_base_friend"       :self.get_networks_metrics_base_label_count_friend_features,
+             "network_label_count_augmented_retweet" :self.get_networks_metrics_augmented_label_count_retweet_features,
 
-              "bio"                 :self.get_bio_features,
+              "bio"                 :self.get_bow_bio_features,
 
              "upos"                 :self.get_upos_features,
              "deprelneg"            :self.get_deprelneg_features,
@@ -297,9 +302,7 @@ class Features_manager(object):
 
             return X_train, X_test, feature_names
 
-
-
-    def get_bio_features(self, tweets,tweet_test=None):
+    def get_bow_bio_features(self, tweets,tweet_test=None):
 
 
         tfidfVectorizer = CountVectorizer(ngram_range=(1,1),
@@ -568,6 +571,7 @@ class Features_manager(object):
 #################################
 #lessicals
 ################################
+
     def get_cue_words_features(self, tweets, tweets_test=None):
         print("Calculating cue_words feature...")
         model = Cue_Words(tweets[0].language)
@@ -629,7 +633,6 @@ class Features_manager(object):
             return csr_matrix(np.vstack(feature)), csr_matrix(np.vstack(feature_test)), feature_names
 
 
-
     def get_lexical_diversity_features(self, tweets, tweets_test=None):
         print("Calculating lexical_diversity feature...")
         if tweets_test is None:
@@ -660,9 +663,198 @@ class Features_manager(object):
             feature_names = concepts
 
             return csr_matrix(np.vstack(feature)), csr_matrix(np.vstack(feature_test)), feature_names
+
 ##############################################
 ##networks
 ##################################################
+
+    def get_networks_metrics_base_centrality_retweet_features(self, tweets, tweets_test=None):
+        print("Calculating lexical_diversity feature...")
+        if tweets_test is None:
+            feature = []
+            for tweet in tweets:
+                concepts = [key   for key,value in tweet.networks_metrics_base_centrality_retweet.dimensions.items()]
+                values   = [float(value) for key,value in tweet.networks_metrics_base_centrality_retweet.dimensions.items()]
+                feature.append(values)
+
+            feature_names = concepts
+
+            return csr_matrix(np.vstack(feature)), feature_names
+        else:
+            feature = []
+            feature_test = []
+            for tweet in tweets:
+                concepts = [key   for key,value in tweet.networks_metrics_base_centrality_retweet.dimensions.items()]
+                values   = [float(value) for key,value in tweet.networks_metrics_base_centrality_retweet.dimensions.items()]
+                feature.append(values)
+
+            feature_names = concepts
+
+            for tweet in tweets:
+                concepts = [key   for key,value in tweet.networks_metrics_base_centrality_retweet.dimensions.items()]
+                values   = [float(value) for key,value in tweet.networks_metrics_base_centrality_retweet.dimensions.items()]
+                feature.append(values)
+
+            feature_names = concepts
+
+            return csr_matrix(np.vstack(feature)), csr_matrix(np.vstack(feature_test)), feature_names
+
+    def get_networks_metrics_base_centrality_friend_features(self, tweets, tweets_test=None):
+        print("Calculating lexical_diversity feature...")
+        if tweets_test is None:
+            feature = []
+            for tweet in tweets:
+                concepts = [key   for key,value in tweet.networks_metrics_base_centrality_friend.dimensions.items()]
+                values   = [float(value) for key,value in tweet.networks_metrics_base_centrality_friend.dimensions.items()]
+                feature.append(values)
+
+            feature_names = concepts
+
+            return csr_matrix(np.vstack(feature)), feature_names
+        else:
+            feature = []
+            feature_test = []
+            for tweet in tweets:
+                concepts = [key   for key,value in tweet.networks_metrics_base_centrality_friend.dimensions.items()]
+                values   = [float(value) for key,value in tweet.networks_metrics_base_centrality_friend.dimensions.items()]
+                feature.append(values)
+
+            feature_names = concepts
+
+            for tweet in tweets:
+                concepts = [key   for key,value in tweet.networks_metrics_base_centrality_friend.dimensions.items()]
+                values   = [float(value) for key,value in tweet.networks_metrics_base_centrality_friend.dimensions.items()]
+                feature.append(values)
+
+            feature_names = concepts
+
+            return csr_matrix(np.vstack(feature)), csr_matrix(np.vstack(feature_test)), feature_names
+
+    def get_networks_metrics_augmented_centrality_retweet_features(self, tweets, tweets_test=None):
+        print("Calculating lexical_diversity feature...")
+        if tweets_test is None:
+            feature = []
+            for tweet in tweets:
+                concepts = [key   for key,value in tweet.networks_metrics_augmented_centrality_retweet.dimensions.items()]
+                values   = [float(value) for key,value in tweet.networks_metrics_augmented_centrality_retweet.dimensions.items()]
+                feature.append(values)
+
+            feature_names = concepts
+
+            return csr_matrix(np.vstack(feature)), feature_names
+        else:
+            feature = []
+            feature_test = []
+            for tweet in tweets:
+                concepts = [key   for key,value in tweet.networks_metrics_augmented_centrality_retweet.dimensions.items()]
+                values   = [float(value) for key,value in tweet.networks_metrics_augmented_centrality_retweet.dimensions.items()]
+                feature.append(values)
+
+            feature_names = concepts
+
+            for tweet in tweets:
+                concepts = [key   for key,value in tweet.networks_metrics_augmented_centrality_retweet.dimensions.items()]
+                values   = [float(value) for key,value in tweet.networks_metrics_augmented_centrality_retweet.dimensions.items()]
+                feature.append(values)
+
+            feature_names = concepts
+
+            return csr_matrix(np.vstack(feature)), csr_matrix(np.vstack(feature_test)), feature_names
+
+
+    def get_networks_metrics_base_label_count_retweet_features(self, tweets, tweets_test=None):
+        print("Calculating lexical_diversity feature...")
+        if tweets_test is None:
+            feature = []
+            for tweet in tweets:
+                concepts = [key   for key,value in tweet.networks_metrics_base_label_count_retweet.dimensions.items()]
+                values   = [float(value) for key,value in tweet.networks_metrics_base_label_count_retweet.dimensions.items()]
+                feature.append(values)
+
+            feature_names = concepts
+
+            return csr_matrix(np.vstack(feature)), feature_names
+        else:
+            feature = []
+            feature_test = []
+            for tweet in tweets:
+                concepts = [key   for key,value in tweet.networks_metrics_base_label_count_retweet.dimensions.items()]
+                values   = [float(value) for key,value in tweet.networks_metrics_base_label_count_retweet.dimensions.items()]
+                feature.append(values)
+
+            feature_names = concepts
+
+            for tweet in tweets:
+                concepts = [key   for key,value in tweet.networks_metrics_base_label_count_retweet.dimensions.items()]
+                values   = [float(value) for key,value in tweet.networks_metrics_base_label_count_retweet.dimensions.items()]
+                feature.append(values)
+
+            feature_names = concepts
+
+            return csr_matrix(np.vstack(feature)), csr_matrix(np.vstack(feature_test)), feature_names
+
+    def get_networks_metrics_base_label_count_friend_features(self, tweets, tweets_test=None):
+        print("Calculating lexical_diversity feature...")
+        if tweets_test is None:
+            feature = []
+            for tweet in tweets:
+                concepts = [key   for key,value in tweet.networks_metrics_base_label_count_friend.dimensions.items()]
+                values   = [float(value) for key,value in tweet.networks_metrics_base_label_count_friend.dimensions.items()]
+                feature.append(values)
+
+            feature_names = concepts
+
+            return csr_matrix(np.vstack(feature)), feature_names
+        else:
+            feature = []
+            feature_test = []
+            for tweet in tweets:
+                concepts = [key   for key,value in tweet.networks_metrics_base_label_count_friend.dimensions.items()]
+                values   = [float(value) for key,value in tweet.networks_metrics_base_label_count_friend.dimensions.items()]
+                feature.append(values)
+
+            feature_names = concepts
+
+            for tweet in tweets:
+                concepts = [key   for key,value in tweet.networks_metrics_base_label_count_friend.dimensions.items()]
+                values   = [float(value) for key,value in tweet.networks_metrics_base_label_count_friend.dimensions.items()]
+                feature.append(values)
+
+            feature_names = concepts
+
+            return csr_matrix(np.vstack(feature)), csr_matrix(np.vstack(feature_test)), feature_names
+
+    def get_networks_metrics_augmented_label_count_retweet_features(self, tweets, tweets_test=None):
+        print("Calculating lexical_diversity feature...")
+        if tweets_test is None:
+            feature = []
+            for tweet in tweets:
+                concepts = [key   for key,value in tweet.networks_metrics_augmented_label_count_retweet.dimensions.items()]
+                values   = [float(value) for key,value in tweet.networks_metrics_augmented_label_count_retweet.dimensions.items()]
+                feature.append(values)
+
+            feature_names = concepts
+
+            return csr_matrix(np.vstack(feature)), feature_names
+        else:
+            feature = []
+            feature_test = []
+            for tweet in tweets:
+                concepts = [key   for key,value in tweet.networks_metrics_augmented_label_count_retweet.dimensions.items()]
+                values   = [float(value) for key,value in tweet.networks_metrics_augmented_label_count_retweet.dimensions.items()]
+                feature.append(values)
+
+            feature_names = concepts
+
+            for tweet in tweets:
+                concepts = [key   for key,value in tweet.networks_metrics_augmented_label_count_retweet.dimensions.items()]
+                values   = [float(value) for key,value in tweet.networks_metrics_augmented_label_count_retweet.dimensions.items()]
+                feature.append(values)
+
+            feature_names = concepts
+
+            return csr_matrix(np.vstack(feature)), csr_matrix(np.vstack(feature_test)), feature_names
+
 
 
 
