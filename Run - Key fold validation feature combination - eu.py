@@ -30,19 +30,19 @@ feature_types=np.array([
                "laughter", #1 featura che conta le risate
                "statistics", #5 feature che verificano la presenza di valori percentuali
 
-               #"bio", #bag of word binary sul testo della bio
+               "bio", #bag of word binary sul testo della bio
                "cue_words",  #8 feature che contano la presenza di 8 categorie di parole
                "linguistic_words", #6 feature che contano la presenza di 6 categorie di parole
                "lexical_diversity",#il numero di features varia a seconda della lingua, comprende alcune metriche di complessità linguistic
 
-               #"network_centrality_base_retweet",
-               #"network_centrality_base_friend",
+               "network_centrality_base_retweet",
+               "network_centrality_base_friend",
                #"network_centrality_augmented_retweet",
-               #"network_label_count_base_retweet",
-               #"network_label_count_base_friend",
+               "network_label_count_base_retweet",
+               "network_label_count_base_friend",
                #"network_label_count_augmented_retweet",
-               #"network_mds_base_retweet",
-               #"network_mds_base_friend",
+               "network_mds_base_retweet",
+               "network_mds_base_friend",
                #"network_mds_augmented_retweet",
 
                 #"upos"   ,

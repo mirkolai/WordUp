@@ -184,7 +184,8 @@ class Features_manager(object):
                     all_X=csr_matrix(hstack((all_X,X)))
                 else:
                     all_X=X
-
+                print(key,X.shape,X.dtype,np.min(X),np.max(X),)
+                print(feature_names[0:50])
             return all_X, all_feature_names, np.array(all_feature_index)
         else:
             all_feature_names=[]

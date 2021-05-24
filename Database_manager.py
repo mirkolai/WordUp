@@ -202,7 +202,7 @@ class Database_manager(object):
 
         return  self.bios[user_id] if user_id in self.bios else make_bio(user_id, " NOBIOAVAILABLE "," NOSCREENNAMEAVAILABLE ")
 
-    #da finire"
+    """#da finire"
     def return_extended_url(self,text):
         file_name="cache/" + self.language +'_extended_url_' + self.partition + '.pkl'
         print("reading ",file_name)
@@ -234,18 +234,17 @@ class Database_manager(object):
                 print(e)
                 return None
 
-        return self.extended_url[urls[0]]
+        return self.extended_url[urls[0]]"""
 
     def return_lexical_diversity(self, tweet_id):
 
         file_name="cache/" + self.language +'_lexical_diversity_' + self.partition + '.pkl'
         print("reading ",file_name,"for tweet ",tweet_id)
-        if self.lexical_diversities is not None:
-            pass
-        elif os.path.isfile(file_name) :
-            self.lexical_diversities= joblib.load(file_name)
+
+        if os.path.isfile(file_name) :
+            lexical_diversities= joblib.load(file_name)
         else:
-            self.lexical_diversities= {}
+            lexical_diversities= {}
             file = "resources/lexical/diversity/"+ self.language +'_lexical_diversity_' + self.partition + ".csv"
             first = True
             csvfile=open(file, newline='')
@@ -262,13 +261,13 @@ class Database_manager(object):
 
                     this_user=make_lexical_diversity(tweet_id,current_user)
 
-                    self.lexical_diversities[tweet_id]=this_user
+                    lexical_diversities[tweet_id]=this_user
 
                 first = False
 
-        joblib.dump(self.lexical_diversities, file_name)
+        joblib.dump(lexical_diversities, file_name)
 
-        return self.lexical_diversities[tweet_id]
+        return lexical_diversities[tweet_id]
 
     def return_networks_metrics(self, user_id, level, relation_type, measure_type):
         """level: base or augmented
@@ -281,12 +280,11 @@ class Database_manager(object):
         """
         file_name="cache/" + level +"_" + measure_type +"_" + self.language +'_' + relation_type + '_' + self.partition + '.pkl'
         print("reading ",file_name,"for user ",user_id)
-        if self.networks_metrics is not None:
-            pass
-        elif os.path.isfile(file_name) :
-            self.networks_metrics= joblib.load(file_name)
+
+        if os.path.isfile(file_name) :
+            networks_metrics= joblib.load(file_name)
         else:
-            self.networks_metrics= {}
+            networks_metrics= {}
             file = "resources/networks_metrics/" + level +"/" + measure_type +"_" + self.language +'_' + relation_type + '_' + self.partition + ".csv"
             first = True
             csvfile=open(file, newline='')
@@ -303,13 +301,13 @@ class Database_manager(object):
 
                     this_user=make_networks_metrics(user_id,current_user)
 
-                    self.networks_metrics[user_id]=this_user
+                    networks_metrics[user_id]=this_user
 
                 first = False
 
-        joblib.dump(self.networks_metrics, file_name)
+        joblib.dump(networks_metrics, file_name)
 
-        return self.networks_metrics[user_id]
+        return networks_metrics[user_id]
 
     def return_networks_mds(self, user_id, level, relation_type, measure_type):
         """level: base or augmented
@@ -321,12 +319,10 @@ class Database_manager(object):
         """
         file_name="cache/" + level +"_" + measure_type +"_" + self.language +'_' + relation_type + '_' + self.partition + '.pkl'
         print("reading ",file_name,"for user ",user_id)
-        if self.networks_mds is not None:
-            pass
-        elif os.path.isfile(file_name) :
-            self.networks_mds= joblib.load(file_name)
+        if os.path.isfile(file_name) :
+            networks_mds= joblib.load(file_name)
         else:
-            self.networks_mds= {}
+            networks_mds= {}
             file = "resources/networks_mds/" + level +"/" + measure_type +"_" + self.language +'_' + relation_type + '_' + self.partition + ".csv"
             first = True
             csvfile=open(file, newline='')
@@ -343,13 +339,13 @@ class Database_manager(object):
 
                     this_user=make_networks_metrics(user_id,current_user)
 
-                    self.networks_mds[user_id]=this_user
+                    networks_mds[user_id]=this_user
 
                 first = False
 
-        joblib.dump(self.networks_mds, file_name)
+        joblib.dump(networks_mds, file_name)
 
-        return self.networks_mds[user_id]
+        return networks_mds[user_id]
 
 
 

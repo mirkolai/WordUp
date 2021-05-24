@@ -208,21 +208,21 @@ class Model_udpipe:
                     if target in item["form"]:
                         for next in conllu_obj[i]:
                             if next["head"] is not None and item["id"]==next["head"]:
-                                print("token",next['form'])
+                                #print("token",next['form'])
                                 next_list.append(self.embeddings.wv.__getitem__(next["form"]))
                         for previous in conllu_obj[i]:
                             if item["head"] is not None and previous["id"]==item["head"]:
-                               print("previous",previous['form'])
+                               #print("previous",previous['form'])
                                previous_list.append(self.embeddings.wv.__getitem__(previous["form"]))
 
-                        print("next_list",type(next_list))
-                        print("previous_list",type(previous_list))
+                        #print("next_list",type(next_list))
+                        #print("previous_list",type(previous_list))
         if len(next_list)==0:
             next_list.append(numpy.array([0]*self.embeddings.vector_size))
         if len(previous_list)==0:
             previous_list.append(numpy.array([0]*self.embeddings.vector_size))
-        print("previous_list",np.average(previous_list,axis=0).shape)
-        print("next_list",np.average(next_list,axis=0).shape)
+        #print("previous_list",np.average(previous_list,axis=0).shape)
+        #print("next_list",np.average(next_list,axis=0).shape)
         output = np.concatenate((np.average(previous_list,axis=0),
                                  np.average(next_list,axis=0)), axis=None)
 
@@ -246,26 +246,26 @@ class Model_udpipe:
                     if target in item["form"]:
                         for next in conllu_obj[i]:
                             if next["head"] is not None and item["id"]==next["head"]:
-                                print("token",next['form'])
+                                #print("token",next['form'])
                                 next_list.append(self.embeddings.wv.__getitem__(next["form"]))
                                 for next_2 in conllu_obj[i]:
                                     if next_2["head"] is not None and next["id"]==next_2["head"]:
-                                        print("token",next_2['form'])
+                                        #print("token",next_2['form'])
                                         next_list_2.append(self.embeddings.wv.__getitem__(next_2["form"]))
 
 
                         for previous in conllu_obj[i]:
                             if item["head"] is not None and previous["id"]==item["head"]:
-                               print("previous",previous['form'])
+                               #print("previous",previous['form'])
                                previous_list.append(self.embeddings.wv.__getitem__(previous["form"]))
                                for previous_2 in conllu_obj[i]:
                                     if previous["head"] is not None and previous_2["id"]==previous["head"]:
-                                        print("token",previous_2['form'])
+                                        #print("token",previous_2['form'])
                                         next_list_2.append(self.embeddings.wv.__getitem__(previous_2["form"]))
-                        print("next_list_2",type(next_list_2))
-                        print("next_list",type(next_list))
-                        print("previous_list_2",type(previous_list_2))
-                        print("previous_list",type(previous_list))
+                        #print("next_list_2",type(next_list_2))
+                        #print("next_list",type(next_list))
+                        #print("previous_list_2",type(previous_list_2))
+                        #print("previous_list",type(previous_list))
         if len(next_list)==0:
             next_list.append(numpy.array([0]*self.embeddings.vector_size))
         if len(next_list_2)==0:
@@ -274,8 +274,8 @@ class Model_udpipe:
             previous_list.append(numpy.array([0]*self.embeddings.vector_size))
         if len(previous_list_2)==0:
             previous_list_2.append(numpy.array([0]*self.embeddings.vector_size))
-        print("previous_list",np.average(previous_list,axis=0).shape)
-        print("next_list",np.average(next_list,axis=0).shape)
+        #print("previous_list",np.average(previous_list,axis=0).shape)
+        #print("next_list",np.average(next_list,axis=0).shape)
         previous=np.concatenate(
                 (np.average(previous_list,axis=0),
                  np.average(previous_list_2,axis=0)), axis=None)
@@ -285,7 +285,7 @@ class Model_udpipe:
         output=np.concatenate(
                 (previous,
                  next) )
-        print("next.shape",next.shape)
+        #print("next.shape",next.shape)
         return output
 
 
