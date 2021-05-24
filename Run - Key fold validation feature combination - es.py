@@ -129,6 +129,6 @@ for K in range(1, N+1):
         file=open("reports/"+language+"_1_2_3_feature_combination.csv","a")
         file.write(', '.join(feature_types[list(subset)])+","+
                    str(X_filter.shape)+","+
-                   str(numpy.mean(accuracies))+","+
-                   str(numpy.mean(fmacros))+"\n")
+                   str(numpy.mean(fmacros))+","+
+                   str(numpy.std(fmacros))+"\n")
         file.close()
