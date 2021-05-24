@@ -1,6 +1,9 @@
+import math
+
 from sklearn.feature_extraction.text import CountVectorizer
 import numpy as np
 import re
+import regex
 from scipy.sparse import csr_matrix, hstack
 from datetime import datetime
 from resource_lexical_cue_words import Cue_Words
@@ -45,6 +48,10 @@ class Features_manager(object):
              "network_label_count_base_retweet"      :self.get_networks_metrics_base_label_count_retweet_features,
              "network_label_count_base_friend"       :self.get_networks_metrics_base_label_count_friend_features,
              "network_label_count_augmented_retweet" :self.get_networks_metrics_augmented_label_count_retweet_features,
+
+             "network_mds_base_retweet"      :self.get_networks_metrics_base_mds_retweet_features,
+             "network_mds_base_friend"       :self.get_networks_metrics_base_mds_friend_features,
+             "network_mds_augmented_retweet" :self.get_networks_metrics_augmented_mds_retweet_features,
 
               "bio"                 :self.get_bow_bio_features,
 
@@ -166,7 +173,6 @@ class Features_manager(object):
             index=0
             for key in feature_types_list:
                 X,feature_names=self.global_feature_types_list[key](tweets,tweet_test)
-
                 current_feature_index=[]
                 for i in range(0,len(feature_names)):
                     current_feature_index.append(index)
@@ -188,6 +194,8 @@ class Features_manager(object):
             index=0
             for key in feature_types_list:
                 X,X_test,feature_names=self.global_feature_types_list[key](tweets,tweet_test)
+                print(key,X.shape,X.dtype,np.min(X),np.max(X),)
+                print(key,X_test.shape,X_test.dtype,np.min(X_test),np.max(X_test))
 
                 current_feature_index=[]
                 for i in range(0,len(feature_names)):
@@ -426,16 +434,15 @@ class Features_manager(object):
             feature  = []
             for tweet in tweets:
                 feature.append([
-                len(re.findall(r"[:upper:]{2,}", tweet.text)),
-                len(re.findall(r"[:upper:][:lower:]{1,}", tweet.text)),
-                len(re.findall(r"[:lower:]{1,}[:upper:]{1,}[:lower:]{1,}", tweet.text)),
-                ]
-
-            )
-
+                len(re.findall(r"[^\w][A-Z]{2,}", " "+tweet.text+" ")),
+                len(re.findall(r"[^\w][A-Z]{2,}[^\w]", " "+tweet.text+" "))/(len(re.findall(r"[^\w][a-z]{2,}[^\w]", " "+tweet.text+" "))+0.01),
+                len(re.findall(r"[^\w][A-Z][a-z]{1,}[^\w]", " "+tweet.text+" ")),
+                len(re.findall(r"[^\w][a-z]{1,}[A-Z]{1,}[a-z]{1,}[^\w]", " "+tweet.text+" ")),
+                ])
 
             return csr_matrix(np.vstack(feature)),\
                    ["feature_words_all_capital",
+                    "feature_ratio_all_capital_all_lower",
                     "feature_words_start_with_capital",
                     "feature_words_with_a_capital_letter_in_the_middle",]
 
@@ -446,24 +453,24 @@ class Features_manager(object):
 
             for tweet in tweets:
                 feature.append([
-                len(re.findall(r"[:upper:]{2,}", tweet.text)),
-                len(re.findall(r"[:upper:][:lower:]{1,}", tweet.text)),
-                len(re.findall(r"[:lower:]{1,}[:upper:]{1,}[:lower:]{1,}", tweet.text)),
-                ]
-
-            )
+                len(re.findall(r"[^\w][A-Z]{2,}", " "+tweet.text+" ")),
+                len(re.findall(r"[^\w][A-Z]{2,}[^\w]", " "+tweet.text+" "))/(len(re.findall(r"[^\w][a-z]{2,}[^\w]", " "+tweet.text+" "))+0.01),
+                len(re.findall(r"[^\w][A-Z][a-z]{1,}[^\w]", " "+tweet.text+" ")),
+                len(re.findall(r"[^\w][a-z]{1,}[A-Z]{1,}[a-z]{1,}[^\w]", " "+tweet.text+" ")),
+               ])
 
             for tweet in tweet_test:
                 feature_test.append([
-                len(re.findall(r"[:upper:]{2,}", tweet.text)),
-                len(re.findall(r"[:upper:][:lower:]{1,}", tweet.text)),
-                len(re.findall(r"[:lower:]{1,}[:upper:]{1,}[:lower:]{1,}", tweet.text)),
-                ]
+                len(re.findall(r"[^\w][A-Z]{2,}", " "+tweet.text+" ")),
+                len(re.findall(r"[^\w][A-Z]{2,}[^\w]", " "+tweet.text+" "))/(len(re.findall(r"[^\w][a-z]{2,}[^\w]", " "+tweet.text+" "))+0.01),
+                len(re.findall(r"[^\w][A-Z][a-z]{1,}[^\w]", " "+tweet.text+" ")),
+                len(re.findall(r"[^\w][a-z]{1,}[A-Z]{1,}[a-z]{1,}[^\w]", " "+tweet.text+" ")),]
 
             )
 
             return csr_matrix(np.vstack(feature)),csr_matrix(np.vstack(feature_test)),\
                    ["feature_words_all_capital",
+                    "feature_ratio_all_capital_all_lower",
                     "feature_words_start_with_capital",
                     "feature_words_with_a_capital_letter_in_the_middle",]
 
@@ -475,7 +482,7 @@ class Features_manager(object):
             #migliorare
             for tweet in tweets:
                 feature.append([
-                len(re.findall(r"((ah[ ]{0,}){2,}|(eh[ ]{0,}){2,}|(ih[ ]{0,}){2,}|(ja[ ]{0,}){2,}|(je[ ]{0,}){2,}|(ji[ ]{0,}){2,})", tweet.text))]
+                len(re.findall(r"(((ah|ha|AH|HA)[ ]{0,}){2,}|((eh|he|EH|HE)[ ]{0,}){2,}|((ih|hi|IH|HI)[ ]{0,}){2,}|((ja|aj|JA|AJ)[ ]{0,}){2,}|((je|ej|EJ|JE)[ ]{0,}){2,}|((ji|ij|JI|IJ)[ ]{0,}){2,})", tweet.text))]
 
             )
 
@@ -489,14 +496,14 @@ class Features_manager(object):
 
             for tweet in tweets:
                 feature.append([
-                    len(re.findall(r"((ah){2,}|(eh){2,}|(ih){2,}|(ja){2,}|(je){2,}|(ji){2,})", tweet.text))]
+                    len(re.findall(r"(((ah|ha|AH|HA)[ ]{0,}){2,}|((eh|he|EH|HE)[ ]{0,}){2,}|((ih|hi|IH|HI)[ ]{0,}){2,}|((ja|aj|JA|AJ)[ ]{0,}){2,}|((je|ej|EJ|JE)[ ]{0,}){2,}|((ji|ij|JI|IJ)[ ]{0,}){2,})", tweet.text))]
 
                 )
 
 
             for tweet in tweet_test:
                 feature_test.append([
-                    len(re.findall(r"((ah){2,}|(eh){2,}|(ih){2,}|(ja){2,}|(je){2,}|(ji){2,})", tweet.text))]
+                    len(re.findall(r"(((ah|ha|AH|HA)[ ]{0,}){2,}|((eh|he|EH|HE)[ ]{0,}){2,}|((ih|hi|IH|HI)[ ]{0,}){2,}|((ja|aj|JA|AJ)[ ]{0,}){2,}|((je|ej|EJ|JE)[ ]{0,}){2,}|((ji|ij|JI|IJ)[ ]{0,}){2,})", tweet.text))]
 
                 )
 
@@ -594,9 +601,9 @@ class Features_manager(object):
 
             feature_names = concepts
 
-            for tweet in tweets:
+            for tweet in tweets_test:
                 concepts, values = model.get_feature(tweet)
-                feature.append(values)
+                feature_test.append(values)
 
             feature_names = concepts
 
@@ -624,9 +631,9 @@ class Features_manager(object):
 
             feature_names = concepts
 
-            for tweet in tweets:
+            for tweet in tweets_test:
                 concepts, values = model.get_feature(tweet)
-                feature.append(values)
+                feature_test.append(values)
 
             feature_names = concepts
 
@@ -638,8 +645,8 @@ class Features_manager(object):
         if tweets_test is None:
             feature = []
             for tweet in tweets:
-                concepts = [key   for key,value in tweet.lexical_diversity.dimensions.items()]
-                values   = [float(value) for key,value in tweet.lexical_diversity.dimensions.items()]
+                concepts = [key          for key,value in tweet.lexical_diversity.dimensions.items()]
+                values   = [np.float32(value) for key,value in tweet.lexical_diversity.dimensions.items()]
                 feature.append(values)
 
             feature_names = concepts
@@ -649,27 +656,26 @@ class Features_manager(object):
             feature = []
             feature_test = []
             for tweet in tweets:
-                concepts = [key   for key,value in tweet.lexical_diversity.dimensions.items()]
-                values   = [float(value) for key,value in tweet.lexical_diversity.dimensions.items()]
+                concepts = [key          for key,value in tweet.lexical_diversity.dimensions.items()]
+                values   = [np.float32(value) for key,value in tweet.lexical_diversity.dimensions.items()]
                 feature.append(values)
 
             feature_names = concepts
 
-            for tweet in tweets:
-                concepts = [key   for key,value in tweet.lexical_diversity.dimensions.items()]
-                values   = [float(value) for key,value in tweet.lexical_diversity.dimensions.items()]
-                feature.append(values)
+            for tweet in tweets_test:
+                concepts = [key          for key,value in tweet.lexical_diversity.dimensions.items()]
+                values   = [0 if math.isinf(np.float32(value)) else np.float32(value) for key,value in tweet.lexical_diversity.dimensions.items()]
+                feature_test.append(values)
 
             feature_names = concepts
-
-            return csr_matrix(np.vstack(feature)), csr_matrix(np.vstack(feature_test)), feature_names
+            return csr_matrix(np.vstack(feature)), csr_matrix(np.float32(feature_test)), feature_names
 
 ##############################################
 ##networks
 ##################################################
 
     def get_networks_metrics_base_centrality_retweet_features(self, tweets, tweets_test=None):
-        print("Calculating lexical_diversity feature...")
+        print("Calculating centrality base retweet feature...")
         if tweets_test is None:
             feature = []
             for tweet in tweets:
@@ -690,17 +696,17 @@ class Features_manager(object):
 
             feature_names = concepts
 
-            for tweet in tweets:
+            for tweet in tweets_test:
                 concepts = [key   for key,value in tweet.networks_metrics_base_centrality_retweet.dimensions.items()]
                 values   = [float(value) for key,value in tweet.networks_metrics_base_centrality_retweet.dimensions.items()]
-                feature.append(values)
+                feature_test.append(values)
 
             feature_names = concepts
 
             return csr_matrix(np.vstack(feature)), csr_matrix(np.vstack(feature_test)), feature_names
 
     def get_networks_metrics_base_centrality_friend_features(self, tweets, tweets_test=None):
-        print("Calculating lexical_diversity feature...")
+        print("Calculating centrality base friend feature...")
         if tweets_test is None:
             feature = []
             for tweet in tweets:
@@ -721,17 +727,17 @@ class Features_manager(object):
 
             feature_names = concepts
 
-            for tweet in tweets:
+            for tweet in tweets_test:
                 concepts = [key   for key,value in tweet.networks_metrics_base_centrality_friend.dimensions.items()]
                 values   = [float(value) for key,value in tweet.networks_metrics_base_centrality_friend.dimensions.items()]
-                feature.append(values)
+                feature_test.append(values)
 
             feature_names = concepts
 
             return csr_matrix(np.vstack(feature)), csr_matrix(np.vstack(feature_test)), feature_names
 
     def get_networks_metrics_augmented_centrality_retweet_features(self, tweets, tweets_test=None):
-        print("Calculating lexical_diversity feature...")
+        print("Calculating centrality augmented retweet feature...")
         if tweets_test is None:
             feature = []
             for tweet in tweets:
@@ -752,10 +758,10 @@ class Features_manager(object):
 
             feature_names = concepts
 
-            for tweet in tweets:
+            for tweet in tweets_test:
                 concepts = [key   for key,value in tweet.networks_metrics_augmented_centrality_retweet.dimensions.items()]
                 values   = [float(value) for key,value in tweet.networks_metrics_augmented_centrality_retweet.dimensions.items()]
-                feature.append(values)
+                feature_test.append(values)
 
             feature_names = concepts
 
@@ -763,7 +769,7 @@ class Features_manager(object):
 
 
     def get_networks_metrics_base_label_count_retweet_features(self, tweets, tweets_test=None):
-        print("Calculating lexical_diversity feature...")
+        print("Calculating label count base retweet feature...")
         if tweets_test is None:
             feature = []
             for tweet in tweets:
@@ -784,17 +790,17 @@ class Features_manager(object):
 
             feature_names = concepts
 
-            for tweet in tweets:
+            for tweet in tweets_test:
                 concepts = [key   for key,value in tweet.networks_metrics_base_label_count_retweet.dimensions.items()]
                 values   = [float(value) for key,value in tweet.networks_metrics_base_label_count_retweet.dimensions.items()]
-                feature.append(values)
+                feature_test.append(values)
 
             feature_names = concepts
 
             return csr_matrix(np.vstack(feature)), csr_matrix(np.vstack(feature_test)), feature_names
 
     def get_networks_metrics_base_label_count_friend_features(self, tweets, tweets_test=None):
-        print("Calculating lexical_diversity feature...")
+        print("Calculating label count base friend feature...")
         if tweets_test is None:
             feature = []
             for tweet in tweets:
@@ -815,17 +821,17 @@ class Features_manager(object):
 
             feature_names = concepts
 
-            for tweet in tweets:
+            for tweet in tweets_test:
                 concepts = [key   for key,value in tweet.networks_metrics_base_label_count_friend.dimensions.items()]
                 values   = [float(value) for key,value in tweet.networks_metrics_base_label_count_friend.dimensions.items()]
-                feature.append(values)
+                feature_test.append(values)
 
             feature_names = concepts
 
             return csr_matrix(np.vstack(feature)), csr_matrix(np.vstack(feature_test)), feature_names
 
     def get_networks_metrics_augmented_label_count_retweet_features(self, tweets, tweets_test=None):
-        print("Calculating lexical_diversity feature...")
+        print("Calculating label count augmented retweet feature...")
         if tweets_test is None:
             feature = []
             for tweet in tweets:
@@ -846,10 +852,105 @@ class Features_manager(object):
 
             feature_names = concepts
 
-            for tweet in tweets:
+            for tweet in tweets_test:
                 concepts = [key   for key,value in tweet.networks_metrics_augmented_label_count_retweet.dimensions.items()]
                 values   = [float(value) for key,value in tweet.networks_metrics_augmented_label_count_retweet.dimensions.items()]
+                feature_test.append(values)
+
+            feature_names = concepts
+
+            return csr_matrix(np.vstack(feature)), csr_matrix(np.vstack(feature_test)), feature_names
+
+
+
+    def get_networks_metrics_base_mds_retweet_features(self, tweets, tweets_test=None):
+        print("Calculating mds base retweet feature...")
+        if tweets_test is None:
+            feature = []
+            for tweet in tweets:
+                concepts = [key   for key,value in tweet.networks_metrics_base_mds_retweet.dimensions.items()]
+                values   = [0 if value=='' else float(value) for key,value in tweet.networks_metrics_base_mds_retweet.dimensions.items()]
                 feature.append(values)
+
+            feature_names = concepts
+
+            return csr_matrix(np.vstack(feature)), feature_names
+        else:
+            feature = []
+            feature_test = []
+            for tweet in tweets:
+                concepts = [key   for key,value in tweet.networks_metrics_base_mds_retweet.dimensions.items()]
+                values   = [0 if value=='' else float(value) for key,value in tweet.networks_metrics_base_mds_retweet.dimensions.items()]
+                feature.append(values)
+
+            feature_names = concepts
+
+            for tweet in tweets_test:
+                concepts = [key   for key,value in tweet.networks_metrics_base_mds_retweet.dimensions.items()]
+                values   = [0 if value=='' else float(value) for key,value in tweet.networks_metrics_base_mds_retweet.dimensions.items()]
+                feature_test.append(values)
+
+            feature_names = concepts
+
+            return csr_matrix(np.vstack(feature)), csr_matrix(np.vstack(feature_test)), feature_names
+
+    def get_networks_metrics_base_mds_friend_features(self, tweets, tweets_test=None):
+        print("Calculating mds base friend feature...")
+        if tweets_test is None:
+            feature = []
+            for tweet in tweets:
+                concepts = [key   for key,value in tweet.networks_metrics_base_mds_friend.dimensions.items()]
+                values   = [0 if value=='' else float(value) for key,value in tweet.networks_metrics_base_mds_friend.dimensions.items()]
+                feature.append(values)
+
+            feature_names = concepts
+
+            return csr_matrix(np.vstack(feature)), feature_names
+        else:
+            feature = []
+            feature_test = []
+            for tweet in tweets:
+                concepts = [key   for key,value in tweet.networks_metrics_base_mds_friend.dimensions.items()]
+                values   = [0 if value=='' else float(value) for key,value in tweet.networks_metrics_base_mds_friend.dimensions.items()]
+                feature.append(values)
+
+            feature_names = concepts
+
+            for tweet in tweets_test:
+                concepts = [key   for key,value in tweet.networks_metrics_base_mds_friend.dimensions.items()]
+                values   = [0 if value=='' else float(value) for key,value in tweet.networks_metrics_base_mds_friend.dimensions.items()]
+                feature_test.append(values)
+
+            feature_names = concepts
+
+            return csr_matrix(np.vstack(feature)), csr_matrix(np.vstack(feature_test)), feature_names
+
+    def get_networks_metrics_augmented_mds_retweet_features(self, tweets, tweets_test=None):
+        print("Calculating mds augmented retweet feature...")
+        if tweets_test is None:
+            feature = []
+            for tweet in tweets:
+                concepts = [key   for key,value in tweet.networks_metrics_augmented_mds_retweet.dimensions.items()]
+                values   = [0 if value=='' else float(value) for key,value in tweet.networks_metrics_augmented_mds_retweet.dimensions.items()]
+                feature.append(values)
+
+            feature_names = concepts
+
+            return csr_matrix(np.vstack(feature)), feature_names
+        else:
+            feature = []
+            feature_test = []
+            for tweet in tweets:
+                concepts = [key   for key,value in tweet.networks_metrics_augmented_mds_retweet.dimensions.items()]
+                values   = [0 if value=='' else float(value) for key,value in tweet.networks_metrics_augmented_mds_retweet.dimensions.items()]
+                feature.append(values)
+
+            feature_names = concepts
+
+            for tweet in tweets_test:
+                concepts = [key   for key,value in tweet.networks_metrics_augmented_mds_retweet.dimensions.items()]
+                values   = [0 if value=='' else float(value) for key,value in tweet.networks_metrics_augmented_mds_retweet.dimensions.items()]
+                feature_test.append(values)
 
             feature_names = concepts
 
@@ -1352,12 +1453,12 @@ class Features_manager(object):
             feature = []
             feature_test = []
             for tweet in tweets:
-                concepts, values = tweet.target_context_one
+                values = tweet.target_context_one
                 feature.append(values)
 
-            for tweet in tweets:
-                concepts, values = tweet.target_context_one
-                feature.append(values)
+            for tweet in tweets_test:
+                values = tweet.target_context_one
+                feature_test.append(values)
 
             return csr_matrix(np.vstack(feature)),\
                    csr_matrix(np.vstack(feature_test)),\
@@ -1369,7 +1470,7 @@ class Features_manager(object):
         if tweets_test is None:
             feature = []
             for tweet in tweets:
-                values = tweet.target_context_one
+                values = tweet.target_context_two
                 feature.append(values)
 
             return csr_matrix(np.vstack(feature)),\
@@ -1378,12 +1479,12 @@ class Features_manager(object):
             feature = []
             feature_test = []
             for tweet in tweets:
-                concepts, values = tweet.target_context_one
+                values = tweet.target_context_two
                 feature.append(values)
 
-            for tweet in tweets:
-                concepts, values = tweet.target_context_one
-                feature.append(values)
+            for tweet in tweets_test:
+                values = tweet.target_context_two
+                feature_test.append(values)
 
             return csr_matrix(np.vstack(feature)),\
                    csr_matrix(np.vstack(feature_test)),\
@@ -1462,7 +1563,7 @@ class Features_manager(object):
                     int(tweet.user.listed_count),
                     datetime.strptime(tweet.user.created_at, '%Y-%m-%d %H:%M:%S').year,
                     datetime.strptime(tweet.user.created_at, '%Y-%m-%d %H:%M:%S').month,
-                    int(tweet.user.statuses_count)/((datetime.strptime(tweet.tweet.created_at, '%Y-%m-%d %H:%M:%S')-datetime.strptime(tweet.user.created_at, '%Y-%m-%d %H:%M:%S')).days+0.1)
+                    int(tweet.user.statuses_count)/((datetime.strptime(tweet.user.created_at, '%Y-%m-%d %H:%M:%S')-datetime.strptime(tweet.user.created_at, '%Y-%m-%d %H:%M:%S')).days+1)
                 ])
 
             return csr_matrix(np.vstack(feature)),\
@@ -1484,8 +1585,8 @@ class Features_manager(object):
                     int(tweet.user.friends_count),
                     int(tweet.user.listed_count),
                     datetime.strptime(tweet.user.created_at, '%Y-%m-%d %H:%M:%S').year,
-                    datetime.strptime(tweet.created_at, '%Y-%m-%d %H:%M:%S').month,
-                    int(tweet.user.statuses_count)/((datetime.strptime(tweet.tweet.created_at, '%Y-%m-%d %H:%M:%S')-datetime.strptime(tweet.user.created_at, '%Y-%m-%d %H:%M:%S')).days+0.1)
+                    datetime.strptime(tweet.user.created_at, '%Y-%m-%d %H:%M:%S').month,
+                    int(tweet.user.statuses_count)/((datetime.strptime(tweet.user.created_at, '%Y-%m-%d %H:%M:%S')-datetime.strptime(tweet.user.created_at, '%Y-%m-%d %H:%M:%S')).days+1)
                 ])
 
 
@@ -1496,8 +1597,8 @@ class Features_manager(object):
                     int(tweet.user.friends_count),
                     int(tweet.user.listed_count),
                     datetime.strptime(tweet.user.created_at, '%Y-%m-%d %H:%M:%S').year,
-                    datetime.strptime(tweet.created_at, '%Y-%m-%d %H:%M:%S').month,
-                    int(tweet.user.statuses_count)/((datetime.strptime(tweet.tweet.created_at, '%Y-%m-%d %H:%M:%S')-datetime.strptime(tweet.user.created_at, '%Y-%m-%d %H:%M:%S')).days+0.1)
+                    datetime.strptime(tweet.user.created_at, '%Y-%m-%d %H:%M:%S').month,
+                    int(tweet.user.statuses_count)/((datetime.strptime(tweet.user.created_at, '%Y-%m-%d %H:%M:%S')-datetime.strptime(tweet.user.created_at, '%Y-%m-%d %H:%M:%S')).days+1)
                 ])
 
             return csr_matrix(np.vstack(feature)),csr_matrix(np.vstack(feature_test)),\

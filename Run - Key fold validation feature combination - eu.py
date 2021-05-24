@@ -1,59 +1,28 @@
-import csv
-import sys
-from _random import Random
-
 import numpy
-from scipy.sparse import csr_matrix
+import numpy as np
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.naive_bayes import GaussianNB
 from sklearn.svm import SVC
 import Features_manager
 import Database_manager
-import joblib
 from sklearn.metrics import precision_recall_fscore_support, accuracy_score
 from sklearn.model_selection import KFold
-import random
-
-
-def unique(list1):
-    # intilize a null list
-    unique_list = {}
-
-    # traverse for all elements
-    for x in list1:
-        # check if exists in unique_list or not
-        if x not in unique_list:
-            unique_list[x]=0
-        unique_list[x]+=1
-            # print list
-    for key,value in unique_list.items():
-        print("labels:",key,value)
-
-
+from itertools import combinations
+language="eu"
 # initialize database_manager
-database_manager = Database_manager.make_database_manager("es","train")
+database_manager = Database_manager.make_database_manager(language,"train")
 # initialize feature_manager
 feature_manager = Features_manager.make_feature_manager()
 
 # recover tweets
 instances = numpy.array(database_manager.return_istances())
-#random.shuffle(instances)
-#instances = instances[0:100]
 labels = numpy.array(feature_manager.get_label(instances))
 
-print(unique(labels))
-
 print("istances:", len(instances))
-"""
-ngrams chargrams deprelneg relationformVERB relationformNOUN
-ngrams chargrams deprelneg relationformVERB relationformNOUN Sidorovbigramsform
-"""
 
-# recover keyword list corresponding to available features
 feature_types = feature_manager.get_availablefeaturetypes()
 """
 or you could include only desired features"""
-feature_types=[
+feature_types=np.array([
                "ngrams", #1-3 grammi lower binary
                "chargrams", #2-5 chargrammi lower binary
                "puntuactionmarks", #6 feature che contano i più comuni segni di punteggiatura
@@ -90,40 +59,76 @@ feature_types=[
                # "tweet_info", #"retweet_count","favourite_count","year","month","hour"
                # "tweet_info_source", #one hot encoding sul tipo di media utilizzato per postare il tweet
                # "user_info", #"statuses_count","followers_count","friends_count","listed_count","year","month","tweet_posted_at_day"
-             ]
-#features: ['statistics', 'network_centrality_augmented_retweet', 'network_label_count_augmented_retweet', 'target_context_one', 'target_context_two', 'tweet_info', 'tweet_info_source', 'user_info']
-#f-avg 0.8342651092075279 0.018279327135929255
+             ])
+
 
 
 # create the feature space with all available features
 X, feature_names, feature_type_indexes = feature_manager.create_feature_space(instances, feature_types)
-
+max_f_avg=0
+max_feature=None
 print("features:", feature_types)
 print("feature space dimension:", X.shape)
 
 accuracies=[]
 f_avg=[]
-for random_state in range(0,1):
-    kf = KFold(n_splits=5, shuffle=True, random_state=random_state)
+print("max_accuracy")
+print("max_feature")
+print(max_f_avg)
+print(max_feature)
 
-    for index_train, index_test in kf.split(X):
-        clf = RandomForestClassifier()
-        clf.fit(X[index_train], labels[index_train])
-        test_predict = clf.predict(X[index_test])
-        prec, recall, f, support = \
-            precision_recall_fscore_support(
-                                            labels[index_test],
-                                            test_predict,
-                                            beta=1)
-        accuracy = accuracy_score(
-                                    labels[index_test],
-                                    test_predict,
-                                    )
-        accuracies.append((f[0]+f[1])/2)
-        f_avg.append((f[0] + f[1]) / 2)
-        print('precision:', prec, 'recall:', recall, 'F-score:', f, 'f-avg:', (f[0]+f[1])/2, 'support:', support)
-        print('f-avg', (f[0] + f[1]) / 2)
-        print('accuracy', accuracy)
-print("accuracies",numpy.mean(accuracies),numpy.std(accuracies))
-print("f-avg", numpy.mean(f_avg), numpy.std(f_avg))
 
+"""
+https://en.wikipedia.org/wiki/Combination
+"""
+print("feature space dimension X:", X.shape)
+
+N = len(feature_types)
+
+for K in range(1, N+1):
+    for subset in combinations(range(0, N), K):
+        print(feature_types[list(subset)])
+        feature_index_filtered=numpy.array([list(feature_types).index(f) for f in feature_types[list(subset)]])
+        feature_index_filtered=numpy.concatenate(feature_type_indexes[list(feature_index_filtered)])
+        X_filter=X[:,feature_index_filtered]
+        print("X_filter.shape",X_filter.shape)
+        accuracies=[]
+        fmacros=[]
+        for random_state in [1,2,3]:
+            kf = KFold(n_splits=5,random_state=random_state,shuffle=True)
+            for index_train, index_test in kf.split(X):
+                # extract the column of the features considered in the current combination
+                # the feature space is reduced
+                print("feature space dimension X for ",feature_types[list(subset)],":", X_filter.shape)
+
+                clf= RandomForestClassifier()
+
+                clf.fit(X_filter[index_train],labels[index_train])
+                test_predict = clf.predict(X_filter[index_test])
+
+                prec, recall, f, support = precision_recall_fscore_support(
+                    labels[index_test],
+                    test_predict,
+                    beta=1)
+
+                accuracy = accuracy_score(
+                    test_predict,
+                    labels[index_test]
+                )
+                accuracies.append(accuracy)
+                fmacros.append((f[0]+f[1])/2)
+        print("numpy.mean(accuracy),",numpy.mean(accuracies),accuracies)
+        print("numpy.mean(fmacros),",numpy.mean(fmacros),fmacros)
+        if(max_f_avg<numpy.mean(fmacros)):
+            max_f_avg=numpy.mean(fmacros)
+            max_feature=feature_types[list(subset)]
+        print("BEST RESULT UNTIL NOW")
+        print(max_feature)
+        print(max_f_avg)
+
+        file=open("reports/"+language+"_1_2_3_feature_combination.csv","a")
+        file.write(', '.join(feature_types[list(subset)])+","+
+                   str(X_filter.shape)+","+
+                   str(numpy.mean(accuracies))+","+
+                   str(numpy.mean(fmacros))+"\n")
+        file.close()

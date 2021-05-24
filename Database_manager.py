@@ -37,7 +37,7 @@ class Database_manager(object):
         if partition not in ["train","test"]:
             raise Exception("partition not supported")
         self.partition=partition
-        self.model_udpipe=Model_udpipe(language)
+        self.model_udpipe=Model_udpipe.getInstance(language)
 
     def return_istances(self):
         file_name="cache/" + self.language +'_' + self.partition + '.pkl'
@@ -60,7 +60,7 @@ class Database_manager(object):
                             tweet_id=instance[0]
                             user_id=instance[1]
                             text=instance[2]
-                            label=instance[3]
+                            label=instance[3] if len(instance)==4 else None
                             tweet=self.return_tweet(tweet_id)
                             user=self.return_user(user_id)
                             conllu_txt=self.model_udpipe.return_conllu_txt(text)
@@ -76,8 +76,10 @@ class Database_manager(object):
                             networks_metrics['base_retweets_label_count']=self.return_networks_metrics(user_id,"base","retweets","label_count")
                             networks_metrics['augmented_retweets_label_count']=self.return_networks_metrics(user_id,"augmented","retweets","label_count")
                             networks_mds={}
-                            #networks_mds['base_retweets_mds']=self.return_networks_mds(user_id,"base","retweets","mds")
-                            #networks_mds['base_friends_mds']=self.return_networks_mds(user_id,"base","friends","mds")
+                            networks_mds['base_retweets_mds']=self.return_networks_mds(user_id,"base","retweets","mds")
+                            networks_mds['base_friends_mds']=self.return_networks_mds(user_id,"base","friends","mds")
+                            networks_mds['augmented_retweets_mds']=self.return_networks_mds(user_id,"augmented","retweets","mds")
+
                             this_istance=make_istance(tweet_id,
                                                       user_id,
                                                       text,
@@ -220,7 +222,7 @@ class Database_manager(object):
         else:
             try:
                 session = requests.Session()  # so connections are recycled
-                resp = session.head(urls[0], allow_redirects=True)
+                resp = session.head(urls[0], allow_redirects=True, timeout=7)
                 full_url=resp.url
                 print("full_url",full_url)
                 if full_url==urls[0]:
@@ -339,7 +341,7 @@ class Database_manager(object):
                     for i in range(1,len(dimensions)):
                         current_user[dimensions[i]]=user[i]
 
-                    this_user=make_networks_metrics(user_id,dimensions)
+                    this_user=make_networks_metrics(user_id,current_user)
 
                     self.networks_mds[user_id]=this_user
 
@@ -361,11 +363,11 @@ def make_database_manager(language,partition):
 
 
 if __name__== "__main__":
-    database_manager = Database_manager("es","train")
+    database_manager = Database_manager("eu","train")
     instances=database_manager.return_istances()
     for instance in instances:
-        #print(database_manager.return_extended_url(istance.text))
-        print(instance.networks_metrics_augmented_centrality_retweet.dimensions)
+        print(database_manager.return_extended_url(instance.text))
+        #print(instance.networks_metrics_augmented_centrality_retweet.dimensions)
         #print(istance.user.followers_count)
         #print(istance.lessical_diversity)
         #print(istance.networks_metrics)

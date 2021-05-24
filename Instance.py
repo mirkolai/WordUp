@@ -50,7 +50,10 @@ class Instance(object):
         self.networks_metrics_base_label_count_friend=networks_metrics["base_friends_label_count"]
         self.networks_metrics_base_label_count_retweet=networks_metrics["base_retweets_label_count"]
         self.networks_metrics_augmented_label_count_retweet=networks_metrics["augmented_retweets_label_count"]
-        #self.networks_metrics_base_mds_retweet=networks_mds["base_retweets_mds"]
+
+        self.networks_metrics_base_mds_friend=networks_mds["base_friends_mds"]
+        self.networks_metrics_base_mds_retweet=networks_mds["base_retweets_mds"]
+        self.networks_metrics_augmented_mds_retweet=networks_mds["augmented_retweets_mds"]
 
 
 def make_istance(tweet_id, user_id,text,language,label,tweet,user,conllu_txt,bio,lessical_diversity,networks_metrics,networks_mds):
