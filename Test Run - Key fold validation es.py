@@ -5,6 +5,7 @@ from _random import Random
 import numpy
 from scipy.sparse import csr_matrix
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
 from sklearn.naive_bayes import GaussianNB
 from sklearn.svm import SVC
 import Features_manager
@@ -55,45 +56,45 @@ feature_types = feature_manager.get_availablefeaturetypes()
 or you could include only desired features"""
 feature_types=[
                "ngrams", #1-3 grammi lower binary
+               #"boemoji",
                "chargrams", #2-5 chargrammi lower binary
-               "puntuactionmarks", #6 feature che contano i più comuni segni di punteggiatura
-               "capitalizedletters", #3 feature sull'uso delle maiuscole
-               "laughter", #1 featura che conta le risate
-               "statistics", #5 feature che verificano la presenza di valori percentuali
+               #"puntuactionmarks", #6 feature che contano i più comuni segni di punteggiatura
+               #"capitalizedletters", #3 feature sull'uso delle maiuscole
+               #"laughter", #1 feature che conta le risate
+               #"statistics", #5 feature che verificano la presenza di valori percentuali
 
-               "bio", #bag of word binary sul testo della bio
-               "cue_words",  #8 feature che contano la presenza di 8 categorie di parole
-               "linguistic_words", #6 feature che contano la presenza di 6 categorie di parole
-               "lexical_diversity",#il numero di features varia a seconda della lingua, comprende alcune metriche di complessità linguistic
+               #"bio", #bag of word binary sul testo della bio
+               #"cue_words",  #8 feature che contano la presenza di 8 categorie di parole
+               #"linguistic_words", #6 feature che contano la presenza di 6 categorie di parole
+               #"lexical_diversity",#il numero di features varia a seconda della lingua, comprende alcune metriche di complessità linguistic
 
-               "network_centrality_base_retweet",
-               "network_centrality_base_friend",
-               "network_centrality_augmented_retweet",
-               "network_label_count_base_retweet",
+               #"network_centrality_base_retweet",
+               #"network_centrality_base_friend",
+               #"network_centrality_augmented_retweet",
+               #"network_label_count_base_retweet",
                "network_label_count_base_friend",
-               "network_label_count_augmented_retweet",
-               "network_mds_base_retweet",
-               "network_mds_base_friend",
+               #"network_label_count_augmented_retweet",
+               #"network_mds_base_retweet",
+               #"network_mds_base_friend",
                "network_mds_augmented_retweet",
 
-                "upos"   ,
-                "deprelneg",
-                "deprel" ,
-                "relationformVERB",
-                "relationformNOUN",
-                "relationformADJ",
-                "Sidorovbigramsform",
-                "Sidorovbigramsupostag",
-                "Sidorovbigramsdeprel" ,
-                "target_context_one", #200 feature che rappresentano gli embeddings della previus e next word rispetto al target nell'albero delle dipendenze
-                "target_context_two", #400 feature che rappresentano gli embeddings delle 2 previus e 2 next word rispetto al target nell'albero delle dipendenze
-                "tweet_info", #"retweet_count","favourite_count","year","month","hour"
-                "tweet_info_source", #one hot encoding sul tipo di media utilizzato per postare il tweet
-                "user_info", #"statuses_count","followers_count","friends_count","listed_count","year","month","tweet_posted_at_day"
-             ]
-#features: ['statistics', 'network_centrality_augmented_retweet', 'network_label_count_augmented_retweet', 'target_context_one', 'target_context_two', 'tweet_info', 'tweet_info_source', 'user_info']
-#f-avg 0.8342651092075279 0.018279327135929255
+                #"upos"   ,
+                #"deprelneg",
+                #"deprel" ,
+                #"relationformVERB",
+                #"relationformNOUN",
+                #"relationformADJ",
+                #"Sidorovbigramsform",
+                #"Sidorovbigramsupostag",
+                #"Sidorovbigramsdeprel" ,
+                #"target_context_one", #200 feature che rappresentano gli embeddings della previus e next word rispetto al target nell'albero delle dipendenze
+                #"target_context_two", #400 feature che rappresentano gli embeddings delle 2 previus e 2 next word rispetto al target nell'albero delle dipendenze
 
+
+                #"tweet_info", #"retweet_count","favourite_count","year","month","hour"
+                #"tweet_info_source", #one hot encoding sul tipo di media utilizzato per postare il tweet
+                #"user_info", #"statuses_count","followers_count","friends_count","listed_count","year","month","tweet_posted_at_day"
+             ]
 
 # create the feature space with all available features
 X, feature_names, feature_type_indexes = feature_manager.create_feature_space(instances, feature_types)
@@ -105,9 +106,9 @@ accuracies=[]
 f_avg=[]
 for random_state in range(0,1):
     kf = KFold(n_splits=5, shuffle=True, random_state=random_state)
-
+    print("random_state",random_state)
     for index_train, index_test in kf.split(X):
-        clf = RandomForestClassifier()
+        clf = LogisticRegression(random_state=random_state)
         clf.fit(X[index_train], labels[index_train])
         test_predict = clf.predict(X[index_test])
         prec, recall, f, support = \
@@ -123,7 +124,7 @@ for random_state in range(0,1):
         f_avg.append((f[0] + f[1]) / 2)
         print('precision:', prec, 'recall:', recall, 'F-score:', f, 'f-avg:', (f[0]+f[1])/2, 'support:', support)
         print('f-avg', (f[0] + f[1]) / 2)
-        print('accuracy', accuracy)
-print("accuracies",numpy.mean(accuracies),numpy.std(accuracies))
+        #print('accuracy', accuracy)
+#print("accuracies",numpy.mean(accuracies),numpy.std(accuracies))
 print("f-avg", numpy.mean(f_avg), numpy.std(f_avg))
 

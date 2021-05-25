@@ -1,5 +1,5 @@
 import math
-
+import emoji
 from sklearn.feature_extraction.text import CountVectorizer
 import numpy as np
 import re
@@ -31,6 +31,7 @@ class Features_manager(object):
         """
         self.global_feature_types_list={
              "ngrams"               :self.get_ngrams_features,
+             #"boemoji"            :self.get_boemoji_features,
              "chargrams"            :self.get_nchargrams_features,
              "puntuactionmarks"     :self.get_puntuaction_marks_features,
              "capitalizedletters"   :self.get_capitalized_letters_features,
@@ -109,10 +110,10 @@ class Features_manager(object):
 
             You could add new features in global_feature_types_list. See def __init__(self).
 
-            
+
         :param tweet_test: Optional. Array of tweet objects belonging to the test set
         :return:
-        
+
         X: The feature space of the training set
         X_test: The feature space of the test set, if test  set was defined
         feature_names: An array containing the names of the features used  for  creating the feature space
@@ -252,6 +253,49 @@ class Features_manager(object):
             for tweet in tweet_test:
 
                 feature_test.append(tweet.text)
+
+
+            tfidfVectorizer = tfidfVectorizer.fit(feature)
+
+            X_train = tfidfVectorizer.transform(feature)
+            X_test = tfidfVectorizer.transform(feature_test)
+
+            feature_names=tfidfVectorizer.get_feature_names()
+
+            return X_train, X_test, feature_names
+
+    def get_boemoji_features(self, tweets,tweet_test=None):
+
+        tfidfVectorizer = CountVectorizer(ngram_range=(1,2),
+                                          analyzer="char",
+                                          #stop_words="english",
+                                          lowercase=True,
+                                          binary=True,
+                                          max_features=500000)
+        if tweet_test is None:
+            feature = []
+            for tweet in tweets:
+
+                feature.append(' '.join(c for c in tweet.text if c in emoji.UNICODE_EMOJI))
+
+
+            tfidfVectorizer = tfidfVectorizer.fit(feature)
+
+            X = tfidfVectorizer.transform(feature)
+
+            feature_names=tfidfVectorizer.get_feature_names()
+
+            return X, feature_names
+        else:
+            feature  = []
+            feature_test  = []
+            for tweet in tweets:
+
+                feature.append(' '.join(c for c in tweet.text if c in emoji.UNICODE_EMOJI))
+
+            for tweet in tweet_test:
+
+                feature_test.append(' '.join(c for c in tweet.text if c in emoji.UNICODE_EMOJI))
 
 
             tfidfVectorizer = tfidfVectorizer.fit(feature)

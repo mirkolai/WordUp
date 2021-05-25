@@ -1,6 +1,7 @@
 import numpy
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
 from sklearn.svm import SVC
 import Features_manager
 import Database_manager
@@ -24,15 +25,16 @@ feature_types = feature_manager.get_availablefeaturetypes()
 or you could include only desired features"""
 feature_types=np.array([
                "ngrams", #1-3 grammi lower binary
+               #"boemoji", #1-2 grammi lower binary
                "chargrams", #2-5 chargrammi lower binary
                "puntuactionmarks", #6 feature che contano i più comuni segni di punteggiatura
                "capitalizedletters", #3 feature sull'uso delle maiuscole
                "laughter", #1 featura che conta le risate
                "statistics", #5 feature che verificano la presenza di valori percentuali
 
-               "bio", #bag of word binary sul testo della bio
-               "cue_words",  #8 feature che contano la presenza di 8 categorie di parole
-               "linguistic_words", #6 feature che contano la presenza di 6 categorie di parole
+               #"bio", #bag of word binary sul testo della bio
+               #"cue_words",  #8 feature che contano la presenza di 8 categorie di parole
+               #"linguistic_words", #6 feature che contano la presenza di 6 categorie di parole
                "lexical_diversity",#il numero di features varia a seconda della lingua, comprende alcune metriche di complessità linguistic
 
                "network_centrality_base_retweet",
@@ -56,9 +58,9 @@ feature_types=np.array([
                 #"Sidorovbigramsdeprel" ,
                 "target_context_one", #200 feature che rappresentano gli embeddings della previus e next word rispetto al target nell'albero delle dipendenze
                 "target_context_two", #400 feature che rappresentano gli embeddings delle 2 previus e 2 next word rispetto al target nell'albero delle dipendenze
-               # "tweet_info", #"retweet_count","favourite_count","year","month","hour"
-               # "tweet_info_source", #one hot encoding sul tipo di media utilizzato per postare il tweet
-               # "user_info", #"statuses_count","followers_count","friends_count","listed_count","year","month","tweet_posted_at_day"
+                "tweet_info", #"retweet_count","favourite_count","year","month","hour"
+                "tweet_info_source", #one hot encoding sul tipo di media utilizzato per postare il tweet
+                "user_info", #"statuses_count","followers_count","friends_count","listed_count","year","month","tweet_posted_at_day"
              ])
 
 
@@ -94,14 +96,14 @@ for K in range(1, N+1):
         print("X_filter.shape",X_filter.shape)
         accuracies=[]
         fmacros=[]
-        for random_state in [1,2,3]:
+        for random_state in [1]:
             kf = KFold(n_splits=5,random_state=random_state,shuffle=True)
             for index_train, index_test in kf.split(X):
                 # extract the column of the features considered in the current combination
                 # the feature space is reduced
                 print("feature space dimension X for ",feature_types[list(subset)],":", X_filter.shape)
 
-                clf= RandomForestClassifier()
+                clf= LogisticRegression()
 
                 clf.fit(X_filter[index_train],labels[index_train])
                 test_predict = clf.predict(X_filter[index_test])
@@ -126,7 +128,7 @@ for K in range(1, N+1):
         print(max_feature)
         print(max_f_avg)
 
-        file=open("reports/"+language+"_1_2_3_feature_combination.csv","a")
+        file=open("reports/"+language+"_1_2_3_lr_feature_combination.csv","a")
         file.write(', '.join(feature_types[list(subset)])+","+
                    str(X_filter.shape)+","+
                    str(numpy.mean(fmacros))+","+

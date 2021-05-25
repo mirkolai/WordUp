@@ -6,7 +6,7 @@ from sklearn.svm import SVC
 import Features_manager
 import Database_manager
 
-language="es"
+language="eu"
 
 feature_manager = Features_manager.make_feature_manager()
 
@@ -21,47 +21,46 @@ print("len(instances_test)",len(instances_test))
 feature_types = feature_manager.get_availablefeaturetypes()
 """ features selezionate per questo track"""
 feature_types=[
-               #"ngrams",
-               #"chargrams",
-               #"puntuactionmarks",
+               "ngrams",
+               "chargrams",
+               "puntuactionmarks",
                "capitalizedletters",
-               #"laughter",
-               #"statistics",
+               "laughter",
+               "statistics",
 
-               #"bio",
-               #"cue_words",
-               #"linguistic_words",
-               #"lexical_diversity",
+               "bio",
+               "cue_words",
+               "linguistic_words",
+               "lexical_diversity",
 
-               #"network_centrality_base_retweet",
-               #"network_centrality_base_friend",
-               #"network_centrality_augmented_retweet",
-               #"network_label_count_base_retweet",
-               #"network_label_count_base_friend",
-               #"network_label_count_augmented_retweet",
-               #"network_mds_base_retweet",
-               #"network_mds_base_friend",
-               #"network_mds_augmented_retweet",
+               "network_centrality_base_retweet",
+               "network_centrality_base_friend",
+               "network_centrality_augmented_retweet",
+               "network_label_count_base_retweet",
+               "network_label_count_base_friend",
+               "network_label_count_augmented_retweet",
+               "network_mds_base_retweet",
+               "network_mds_base_friend",
+               "network_mds_augmented_retweet",
 
-               #"upos"   ,
-               #"deprelneg",
-               #"deprel" ,
-               #"relationformVERB",
-               #"relationformNOUN",
-               #"relationformADJ",
-               #"Sidorovbigramsform",
-               #"Sidorovbigramsupostag",
-               #"Sidorovbigramsdeprel" ,
-               #"target_context_one",
-               #"target_context_two",
-               #"tweet_info",
-               #"tweet_info_source",
-               #"user_info",
+               "upos"   ,
+               "deprelneg",
+               "deprel" ,
+               "relationformVERB",
+               "relationformNOUN",
+               "relationformADJ",
+               "Sidorovbigramsform",
+               "Sidorovbigramsupostag",
+               "Sidorovbigramsdeprel" ,
+               "target_context_one",
+               "target_context_two",
+               "tweet_info",
+               "tweet_info_source",
+               "user_info",
              ]
 
 X, X_test, feature_name, feature_type_indexes = feature_manager.create_feature_space(instances_train, feature_types,instances_test)
 
-print(feature_name)
 print("feature space dimension X:", X.shape)
 print("feature space dimension X_test:", X_test.shape)
 
@@ -70,7 +69,7 @@ clf = RandomForestClassifier()
 clf.fit(X, labels_train)
 test_predict = clf.predict(X_test)
 
-file=open("predictions/WordUp!-Close-Textual-track_"+language+"_01.csv","w")
+file=open("predictions/Close-Textual-track_"+language+"_02.csv","w")
 spam_writer= csv.writer(file, delimiter=",",quotechar="\"", quoting=csv.QUOTE_MINIMAL)
 spam_writer.writerow(["tweet_id","user_id","text","label"])
 for i in range(0, len(test_predict)):

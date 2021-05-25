@@ -6,7 +6,7 @@ from sklearn.svm import SVC
 import Features_manager
 import Database_manager
 
-language="es"
+language="eu"
 
 feature_manager = Features_manager.make_feature_manager()
 
@@ -70,7 +70,7 @@ clf = RandomForestClassifier()
 clf.fit(X, labels_train)
 test_predict = clf.predict(X_test)
 
-file=open("predictions/WordUp!-Close-Textual-track_"+language+"_01.csv","w")
+file=open("predictions/WordUp!-Open-track_"+language+"_01.csv","w")
 spam_writer= csv.writer(file, delimiter=",",quotechar="\"", quoting=csv.QUOTE_MINIMAL)
 spam_writer.writerow(["tweet_id","user_id","text","label"])
 for i in range(0, len(test_predict)):
