@@ -2,6 +2,7 @@ import csv
 
 import numpy
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
 from sklearn.svm import SVC
 import Features_manager
 import Database_manager
@@ -24,11 +25,11 @@ feature_types=[
                #"ngrams",
                #"chargrams",
                #"puntuactionmarks",
-               "capitalizedletters",
+               #"capitalizedletters",
                #"laughter",
                #"statistics",
 
-               #"bio",
+               "bio",
                #"cue_words",
                #"linguistic_words",
                #"lexical_diversity",
@@ -65,12 +66,12 @@ print(feature_name)
 print("feature space dimension X:", X.shape)
 print("feature space dimension X_test:", X_test.shape)
 
-clf = RandomForestClassifier()
+clf = LogisticRegression()
 
 clf.fit(X, labels_train)
 test_predict = clf.predict(X_test)
 
-file=open("predictions/WordUp!-Zero-track_"+language+"_02.csv","w")
+file=open("predictions/WordUp_Zero-Shot-track_"+language+"_02.csv","w")
 spam_writer= csv.writer(file, delimiter=",",quotechar="\"", quoting=csv.QUOTE_MINIMAL)
 spam_writer.writerow(["tweet_id","user_id","text","label"])
 for i in range(0, len(test_predict)):

@@ -2,6 +2,7 @@ import csv
 
 import numpy
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
 from sklearn.svm import SVC
 import Features_manager
 import Database_manager
@@ -21,10 +22,10 @@ print("len(instances_test)",len(instances_test))
 feature_types = feature_manager.get_availablefeaturetypes()
 """ features selezionate per questo track"""
 feature_types=[
-               #"ngrams",
-               #"chargrams",
+               "ngrams",
+               "chargrams",
                #"puntuactionmarks",
-               "capitalizedletters",
+               #"capitalizedletters",
                #"laughter",
                #"statistics",
 
@@ -37,7 +38,7 @@ feature_types=[
                #"network_centrality_base_friend",
                #"network_centrality_augmented_retweet",
                #"network_label_count_base_retweet",
-               #"network_label_count_base_friend",
+               "network_label_count_base_friend",
                #"network_label_count_augmented_retweet",
                #"network_mds_base_retweet",
                #"network_mds_base_friend",
@@ -65,12 +66,12 @@ print(feature_name)
 print("feature space dimension X:", X.shape)
 print("feature space dimension X_test:", X_test.shape)
 
-clf = RandomForestClassifier()
+clf = LogisticRegression()
 
 clf.fit(X, labels_train)
 test_predict = clf.predict(X_test)
 
-file=open("predictions/WordUp!-Close-Contextual-track_"+language+"_01.csv","w")
+file=open("predictions/WordUp_Close-Contextual-track_"+language+"_01.csv","w")
 spam_writer= csv.writer(file, delimiter=",",quotechar="\"", quoting=csv.QUOTE_MINIMAL)
 spam_writer.writerow(["tweet_id","user_id","text","label"])
 for i in range(0, len(test_predict)):

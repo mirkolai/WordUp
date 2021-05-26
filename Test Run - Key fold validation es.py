@@ -4,7 +4,7 @@ from _random import Random
 
 import numpy
 from scipy.sparse import csr_matrix
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.naive_bayes import GaussianNB
 from sklearn.svm import SVC
@@ -55,15 +55,15 @@ feature_types = feature_manager.get_availablefeaturetypes()
 """
 or you could include only desired features"""
 feature_types=[
-               "ngrams", #1-3 grammi lower binary
+               #"ngrams", #1-3 grammi lower binary
                #"boemoji",
-               "chargrams", #2-5 chargrammi lower binary
+               #"chargrams", #2-5 chargrammi lower binary
                #"puntuactionmarks", #6 feature che contano i più comuni segni di punteggiatura
                #"capitalizedletters", #3 feature sull'uso delle maiuscole
                #"laughter", #1 feature che conta le risate
                #"statistics", #5 feature che verificano la presenza di valori percentuali
 
-               #"bio", #bag of word binary sul testo della bio
+               "bio", #bag of word binary sul testo della bio
                #"cue_words",  #8 feature che contano la presenza di 8 categorie di parole
                #"linguistic_words", #6 feature che contano la presenza di 6 categorie di parole
                #"lexical_diversity",#il numero di features varia a seconda della lingua, comprende alcune metriche di complessità linguistic
@@ -72,11 +72,11 @@ feature_types=[
                #"network_centrality_base_friend",
                #"network_centrality_augmented_retweet",
                #"network_label_count_base_retweet",
-               "network_label_count_base_friend",
+               #"network_label_count_base_friend",
                #"network_label_count_augmented_retweet",
                #"network_mds_base_retweet",
                #"network_mds_base_friend",
-               "network_mds_augmented_retweet",
+               #"network_mds_augmented_retweet",
 
                 #"upos"   ,
                 #"deprelneg",
@@ -109,6 +109,7 @@ for random_state in range(0,1):
     print("random_state",random_state)
     for index_train, index_test in kf.split(X):
         clf = LogisticRegression(random_state=random_state)
+        clf = GradientBoostingClassifier()
         clf.fit(X[index_train], labels[index_train])
         test_predict = clf.predict(X[index_test])
         prec, recall, f, support = \
