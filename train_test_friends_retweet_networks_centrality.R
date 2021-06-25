@@ -11,6 +11,7 @@ setwd( wdir )
 source("functions.R")
 
 EVAL_NETWORK=TRUE
+library(readr)
 library(igraph)
 library(ggraph)
 library(tm)
